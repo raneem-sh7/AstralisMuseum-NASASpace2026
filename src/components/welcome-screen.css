@@ -229,7 +229,8 @@
   transform: translateX(3px);
 }
 
-.astralis-welcome__how {
+.astralis-welcome__how,
+.astralis-welcome__new {
   min-height: 3rem;
   padding: 0.75rem 0.15rem;
   border: 0;
@@ -242,7 +243,8 @@
   transition: border-color 180ms ease, color 180ms ease;
 }
 
-.astralis-welcome__how:hover {
+.astralis-welcome__how:hover,
+.astralis-welcome__new:hover {
   border-color: var(--welcome-cyan);
   color: var(--welcome-cyan);
 }
@@ -416,7 +418,8 @@
     min-height: 3.15rem;
   }
 
-  .astralis-welcome__how {
+  .astralis-welcome__how,
+  .astralis-welcome__new {
     min-height: 2.5rem;
   }
 

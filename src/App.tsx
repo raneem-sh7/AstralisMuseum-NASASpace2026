@@ -367,6 +367,7 @@ export default function App() {
     {screen === "welcome" && <WelcomeScreen
       hasSave={hasSave}
       onEnter={() => { audioManager.play("launch"); hasSave ? continueGame() : setScreen("select"); }}
+      onNewAdventure={newAdventure}
       onHowToPlay={() => setModal("how")}
       onCredits={() => setModal("credits")}
       audioControls={<AudioControls />}

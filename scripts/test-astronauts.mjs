@@ -127,6 +127,54 @@ try {
   await capture("picker-desktop");
   if (process.argv.includes("--visual-only")) {
     console.log("PASS desktop and mobile picker visual captures, biographies, selection, and no horizontal overflow");
+  } else if (process.argv.includes("--flow-only")) {
+    await click(".astronaut-selection__back");
+    assert(await evaluate(`document.querySelector('.astralis-welcome__new') === null && localStorage.getItem('astralis-progress-v1') === null`), "First-time welcome incorrectly shows New Adventure or saved data");
+
+    const savedMars = {astronaut:"victor-glover",planet:"Mars",oxygen:33,completed:["spirit"],stamps:["spirit"]};
+    await evaluate(`localStorage.setItem('astralis-progress-v1',${JSON.stringify(JSON.stringify(savedMars))})`);
+    await cdp("Page.reload");
+    await waitFor(`document.querySelector('.astralis-welcome__new')`, "saved-player welcome options");
+    await click(".astralis-welcome__enter"); await ready();
+    assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === 'victor-glover' && document.querySelector('.game-canvas').getAttribute('aria-label').startsWith('Mars')`), "Returning save did not restore Victor and Mars");
+    assert(await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1')).oxygen === 33 && JSON.parse(localStorage.getItem('astralis-progress-v1')).stamps.length === 1`), "Returning save changed progress");
+    await click('button[aria-label="Main menu"]');
+    await waitFor(`document.querySelector('.astralis-welcome__new')`, "return to saved welcome");
+    await click(".astralis-welcome__new");
+    assert(await evaluate(`localStorage.getItem('astralis-progress-v1') === null && document.querySelectorAll('.astronaut-profile').length === 2`), "New Adventure did not clear saved progress and open selection");
+    await click(".astronaut-profile__select", 0); await click(".astronaut-selection__confirm"); await ready();
+    assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === 'christina-koch' && document.querySelector('.moon-o2-info strong').innerText.includes('60') && document.querySelector('.moon-count').innerText.startsWith('0 /')`), "New Adventure did not start a clean Christina expedition");
+    const cleanSave = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
+    assert(cleanSave.astronaut === "christina-koch" && cleanSave.planet === "Moon" && cleanSave.oxygen === 60 && cleanSave.stamps.length === 0 && cleanSave.completed.length === 0, "New Adventure persisted old progress");
+
+    for (const id of ["christina-koch","victor-glover"]) {
+      await evaluate(`localStorage.setItem('astralis-progress-v1',${JSON.stringify(JSON.stringify({astronaut:id,planet:"Moon",oxygen:20,completed:[],stamps:[]}))})`);
+      await cdp("Page.reload"); await waitFor(`document.querySelector('.astralis-welcome__enter')`, "game-over fixture welcome");
+      await click(".astralis-welcome__enter"); await ready();
+      assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === ${JSON.stringify(id)}`), `${id} was not restored before game over`);
+      await press("a",1150); await press("e",60);
+      await waitFor(`document.querySelector('.moon-dialogue-title')`, `${id} inspect`);
+      const eagle = await evaluate(`import('/src/data/exhibits.ts').then(m=>m.EXHIBITS.find(e=>e.id==='apollo-11-eagle'))`);
+      await clickText("Meet ", ".moon-dialogue-actions .moon-action");
+      await click(".moon-dialogue .moon-answer",eagle.hook.answer);
+      await clickText("Continue to the story");
+      for(let i=0;i<eagle.story.length;i++) await click(".moon-dialogue-actions .moon-action");
+      const memory = eagle.memory[0];
+      await click(".moon-dialogue .moon-answer",(memory.answer+1)%4);
+      await waitFor(`document.body.innerText.includes('Mission Failed')`, `${id} oxygen game over`);
+      assert(await evaluate(`localStorage.getItem('astralis-progress-v1') === null`), `${id} game over left a save`);
+      const nextId = id === "christina-koch" ? "victor-glover" : "christina-koch";
+      await clickText("Return to astronaut selection");
+      await waitFor(`document.querySelectorAll('.astronaut-profile').length === 2`, `${id} return to selection`);
+      await click(".astronaut-profile__select",nextId === "victor-glover" ? 1 : 0);
+      await click(".astronaut-selection__confirm"); await ready();
+      assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === ${JSON.stringify(nextId)} && document.querySelector('.moon-o2-info strong').innerText.includes('60') && document.querySelector('.moon-count').innerText.startsWith('0 /')`), `${id} game over did not restart cleanly as ${nextId}`);
+      const restart = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
+      assert(restart.astronaut===nextId && restart.oxygen===60 && restart.stamps.length===0 && restart.completed.length===0, `${id} game over restart retained progress`);
+      console.log(`PASS ${id}: oxygen depletion clears mission and supports a clean restart as ${nextId}`);
+    }
+    assert(errors.length===0,`Browser exceptions: ${errors.join("\n")}`);
+    console.log("PASS first-time entry, both saved-game refreshes, New Adventure, and both astronaut game-over/restart flows");
   } else {
   await click(".astronaut-selection__confirm"); await ready();
   assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === 'victor-glover'`), "Victor selection was lost");

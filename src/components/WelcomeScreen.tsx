@@ -11,6 +11,7 @@ import "./welcome-screen.css";
 export type WelcomeScreenProps = {
   hasSave: boolean;
   onEnter: () => void;
+  onNewAdventure: () => void;
   onHowToPlay: () => void;
   onCredits: () => void;
   audioControls: ReactNode;
@@ -19,6 +20,7 @@ export type WelcomeScreenProps = {
 export function WelcomeScreen({
   hasSave,
   onEnter,
+  onNewAdventure,
   onHowToPlay,
   onCredits,
   audioControls,
@@ -96,6 +98,16 @@ export function WelcomeScreen({
           >
             HOW TO PLAY
           </button>
+          {hasSave && (
+            <button
+              className="astralis-welcome__new"
+              type="button"
+              onClick={onNewAdventure}
+              aria-label="Start a new adventure and choose an astronaut"
+            >
+              NEW ADVENTURE
+            </button>
+          )}
         </div>
       </section>
 

@@ -168,6 +168,9 @@
   padding: 18px 22px; border-bottom: 1px solid rgba(240,247,236,.11);
 }
 .moon-dialogue-head .moon-eyebrow { color: var(--moon-cyan); font-size: 9px; }
+.moon-dialogue-head-actions { display:flex;align-items:center;gap:8px; }
+.moon-passport-shortcut { min-height:37px;padding:0 11px;border:1px solid rgba(150,216,224,.24);border-radius:999px;background:rgba(124,228,241,.05);color:#c9f7f5;cursor:pointer;font:9px var(--mono);letter-spacing:.08em; }
+.moon-passport-shortcut:hover { border-color:rgba(150,216,224,.58);background:rgba(124,228,241,.1); }
 .moon-close {
   display: grid; width: 37px; height: 37px; place-items: center; border-radius: 50%;
   color: #e8efea; border: 1px solid rgba(230,241,231,.2); background: rgba(255,255,255,.04); cursor: pointer;

@@ -15,6 +15,7 @@ type MoonDialogueProps = {
   hookAnswer: number | null;
   memoryAnswer: number | null;
   onClose: () => void;
+  onPassport?: () => void;
   onAction: () => void;
   onHookAnswer: (i: number) => void;
   onMemoryAnswer: (i: number) => void;
@@ -56,7 +57,7 @@ function Answers({
 
 export function MoonDialogue({
   phase, exhibit, oxygen, storyIndex, memoryIndex, hookAnswer, memoryAnswer,
-  onClose, onAction, onHookAnswer, onMemoryAnswer, onRetryMemory, onNextStory, credits, photoInfo,
+  onClose, onPassport, onAction, onHookAnswer, onMemoryAnswer, onRetryMemory, onNextStory, credits, photoInfo,
 }: MoonDialogueProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -116,9 +117,12 @@ export function MoonDialogue({
     <article ref={dialogRef} className="moon-dialogue" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="moon-dialogue-title">
       <header className="moon-dialogue-head">
         <span className="moon-eyebrow">ASTRALIS / PERSONAL LOG</span>
-        <button ref={closeRef} className="moon-close" type="button" onClick={onClose} aria-label="Close dialogue">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg>
-        </button>
+        <div className="moon-dialogue-head-actions">
+          {onPassport && <button className="moon-passport-shortcut" type="button" onClick={onPassport}>Open Passport</button>}
+          <button ref={closeRef} className="moon-close" type="button" onClick={onClose} aria-label="Close dialogue">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
       </header>
       <div className="moon-dialogue-content">
         <div className="moon-dialogue-grid">

@@ -12,6 +12,7 @@ export type WelcomeScreenProps = {
   hasSave: boolean;
   onEnter: () => void;
   onNewAdventure: () => void;
+  onMarsPreview: () => void;
   onHowToPlay: () => void;
   onCredits: () => void;
   audioControls: ReactNode;
@@ -21,6 +22,7 @@ export function WelcomeScreen({
   hasSave,
   onEnter,
   onNewAdventure,
+  onMarsPreview,
   onHowToPlay,
   onCredits,
   audioControls,
@@ -97,6 +99,14 @@ export function WelcomeScreen({
             onClick={onHowToPlay}
           >
             HOW TO PLAY
+          </button>
+          <button
+            className="astralis-welcome__mars-preview"
+            type="button"
+            onClick={onMarsPreview}
+            aria-label="Preview the Mars expedition without saving progress"
+          >
+            PREVIEW MARS
           </button>
           {hasSave && (
             <button

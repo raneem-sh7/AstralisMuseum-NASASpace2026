@@ -11,6 +11,7 @@ type MoonGameShellProps = {
   planetStampCount?: number;
   totalStamps?: number;
   moonStampCount?: number;
+  previewMode?: boolean;
   nearbyName: string | null;
   onMenu: () => void;
   onPassport: () => void;
@@ -34,7 +35,7 @@ function MoonIcon({ name }: { name: "moon" | "mars" | "passport" | "menu" | "gui
 
 export function MoonGameShell({
   children, movementControls, audioControls, oxygen, stampCount, planet = "Moon",
-  planetStampCount, totalStamps = 6, moonStampCount, nearbyName,
+  planetStampCount, totalStamps = 6, moonStampCount, previewMode = false, nearbyName,
   onMenu, onPassport, onGuide, onCredits, onInteract,
 }: MoonGameShellProps) {
   const oxygenValue = Math.max(0, Math.min(100, oxygen));
@@ -63,7 +64,7 @@ export function MoonGameShell({
       <div className="moon-world-label">
           <div className="moon-eyebrow">{planet === "Moon" ? "LUNAR" : "MARTIAN"} SURFACE / EDUCATIONAL COMPOSITE</div>
         <h1>Quiet ground.<br />Long memory.</h1>
-        <p>{planet === "Moon" ? "Apollo hardware, remembered here." : "Mars missions, remembered here."}</p>
+        <p>{previewMode ? "Preview only · progress is not saved." : planet === "Moon" ? "Apollo hardware, remembered here." : "Mars missions, remembered here."}</p>
       </div>
       {nearbyName && <div className="moon-nearby" role="status"><i />Within radio range <span aria-hidden="true">·</span> {nearbyName}</div>}
       <footer className="moon-footer">

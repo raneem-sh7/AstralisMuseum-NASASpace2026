@@ -180,6 +180,7 @@
 .astralis-welcome__actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1.4rem;
   margin-top: 2rem;
 }
@@ -230,7 +231,8 @@
 }
 
 .astralis-welcome__how,
-.astralis-welcome__new {
+.astralis-welcome__new,
+.astralis-welcome__mars-preview {
   min-height: 3rem;
   padding: 0.75rem 0.15rem;
   border: 0;
@@ -243,8 +245,13 @@
   transition: border-color 180ms ease, color 180ms ease;
 }
 
+.astralis-welcome__mars-preview {
+  color: var(--welcome-cyan);
+}
+
 .astralis-welcome__how:hover,
-.astralis-welcome__new:hover {
+.astralis-welcome__new:hover,
+.astralis-welcome__mars-preview:hover {
   border-color: var(--welcome-cyan);
   color: var(--welcome-cyan);
 }
@@ -419,7 +426,8 @@
   }
 
   .astralis-welcome__how,
-  .astralis-welcome__new {
+  .astralis-welcome__new,
+  .astralis-welcome__mars-preview {
     min-height: 2.5rem;
   }
 

@@ -12,6 +12,7 @@ type MarsDialogueProps = {
   hookAnswer: number | null;
   memoryAnswer: number | null;
   onClose: () => void;
+  onPassport?: () => void;
   onAction: () => void;
   onHookAnswer: (i: number) => void;
   onMemoryAnswer: (i: number) => void;

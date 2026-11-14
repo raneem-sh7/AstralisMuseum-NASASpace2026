@@ -9,6 +9,13 @@ export type SceneOptions = {
   onInteract: (id: string) => void;
 };
 
+export type MuseumSceneController = {
+  setJoystick: (x: number, y: number) => void;
+  setMovementEnabled: (enabled: boolean) => void;
+  interact: () => void;
+  setTalking?: (id: string | null, talking: boolean) => void;
+};
+
 export class MuseumScene extends Phaser.Scene {
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private player!: Phaser.GameObjects.Container;

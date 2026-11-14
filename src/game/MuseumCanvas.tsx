@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import Phaser from "phaser";
 import { MuseumScene } from "./MuseumScene";
+import type { MuseumSceneController } from "./MuseumScene";
+import { MoonScene } from "./MoonScene";
 
 type Props = {
   planet: "Moon" | "Mars";
@@ -9,34 +11,63 @@ type Props = {
   completed: string[];
   onNearby: (id: string | null) => void;
   onInteract: (id: string) => void;
-  sceneRef: MutableRefObject<MuseumScene | null>;
+  sceneRef: MutableRefObject<MuseumSceneController | null>;
 };
 
 export default function MuseumCanvas({ planet, astronaut, completed, onNearby, onInteract, sceneRef }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
   const nearbyRef = useRef(onNearby);
   const interactRef = useRef(onInteract);
+  const [ready, setReady] = useState(false);
+  const [moonViewport, setMoonViewport] = useState<{ width: number; height: number } | null>(null);
   nearbyRef.current = onNearby;
   interactRef.current = onInteract;
   const completedKey = completed.join(",");
+  const viewport = planet === "Mars" ? { width: 1000, height: 620 } : moonViewport;
+
+  useLayoutEffect(() => {
+    if (planet !== "Moon" || !parentRef.current) {
+      setMoonViewport(null);
+      return;
+    }
+    const resize = () => {
+      const bounds = parentRef.current?.getBoundingClientRect();
+      if (!bounds || bounds.width <= 0 || bounds.height <= 0) return;
+      const width = bounds.width < 768 ? 620 : 1000;
+      const height = Math.max(360, Math.round(width * bounds.height / bounds.width));
+      setMoonViewport(current => current?.width === width && current.height === height ? current : { width, height });
+    };
+    resize();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+    if (observer && parentRef.current) observer.observe(parentRef.current);
+    else window.addEventListener("resize", resize);
+    return () => {
+      observer?.disconnect();
+      if (!observer) window.removeEventListener("resize", resize);
+    };
+  }, [planet]);
 
   useEffect(() => {
-    if (!parentRef.current) return;
-    const scene = new MuseumScene();
+    if (!mountRef.current || !viewport) return;
+    setReady(false);
+    const scene = planet === "Moon" ? new MoonScene() : new MuseumScene();
     scene.configure({
       planet, astronaut, completed: completedKey ? completedKey.split(",") : [],
       onNearby: (id) => nearbyRef.current(id),
       onInteract: (id) => interactRef.current(id)
     });
+    scene.events.once("create", () => setReady(true));
     const game = new Phaser.Game({
       type: Phaser.CANVAS,
-      parent: parentRef.current,
-      width: 1000,
-      height: 620,
+      parent: mountRef.current,
+      width: viewport.width,
+      height: viewport.height,
       backgroundColor: "#101e39",
       transparent: false,
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
       render: { antialias: true, pixelArt: false, roundPixels: true },
+      audio: { noAudio: true },
       scene
     });
     sceneRef.current = scene;
@@ -44,7 +75,10 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
       sceneRef.current = null;
       game.destroy(true);
     };
-  }, [planet, astronaut, completedKey, sceneRef]);
+  }, [planet, astronaut, completedKey, sceneRef, viewport?.width, viewport?.height]);
 
-  return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game`} role="img" />;
+  return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game`} role="img" aria-busy={!ready} data-ready={ready}>
+    <div ref={mountRef} className="phaser-mount" />
+    {!ready && <div className="canvas-loading" role="status">{planet === "Moon" ? "Preparing lunar field instruments…" : "Entering museum…"}</div>}
+  </div>;
 }

@@ -1,0 +1,15 @@
+.audio-controls { position:relative;display:flex;align-items:center;z-index:45;gap:1px;color:#c6f6f5; }
+.audio-icon-button,.audio-settings-button { border:0;background:rgba(5,15,21,.65);min-height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s; }
+.audio-icon-button { width:36px;border-radius:8px 0 0 8px; }
+.audio-settings-button { gap:7px;padding:0 9px;border-radius:0 8px 8px 0;font-size:10px; }
+.audio-icon-button:hover,.audio-settings-button:hover { background:rgba(54,102,107,.65); }
+.audio-panel { position:absolute;right:0;top:calc(100% + 10px);width:min(290px,calc(100vw - 32px));padding:18px;border:1px solid #71cbd74d;border-radius:15px;background:#0b191ff5;backdrop-filter:blur(20px);box-shadow:0 16px 60px #0009;color:#e9f3f4;text-align:left; }
+.audio-panel-title { display:flex;align-items:center;justify-content:space-between;font-size:14px; }
+.audio-panel-title button { font-size:22px;line-height:1;color:#a9c8ca;border:0;background:none;cursor:pointer;width:30px;height:30px; }
+.audio-panel p { font-size:11px;line-height:1.5;color:#9bb6bb;margin:8px 0 18px; }
+.audio-panel label { display:flex;justify-content:space-between;font-size:12px;margin:14px 0 8px; }
+.audio-panel output { font-family:var(--mono);color:#91e9e4;font-size:11px; }
+.audio-panel input[type=range] { display:block;width:100%;accent-color:#99eee6;cursor:pointer;min-height:26px; }
+.audio-mute-control { width:100%;border:1px solid #7bafaf4d;border-radius:8px;padding:9px;margin-top:16px;font-size:12px;color:#d0eeed;background:#ffffff08;cursor:pointer; }
+.audio-panel small { display:block;font-size:10px;line-height:1.6;color:#8da9ad;margin-top:12px; }
+@media(max-width:600px) { .audio-settings-button { font-size:0;gap:0;width:20px;padding:0; }.audio-icon-button { width:32px; }.audio-panel { position:fixed;top:84px;right:16px; } }

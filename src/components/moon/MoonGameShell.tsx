@@ -9,6 +9,7 @@ type MoonGameShellProps = {
   stampCount: number;
   planet?: "Moon" | "Mars";
   planetStampCount?: number;
+  planetTotalStamps?: number;
   totalStamps?: number;
   moonStampCount?: number;
   previewMode?: boolean;
@@ -35,7 +36,7 @@ function MoonIcon({ name }: { name: "moon" | "mars" | "passport" | "menu" | "gui
 
 export function MoonGameShell({
   children, movementControls, audioControls, oxygen, stampCount, planet = "Moon",
-  planetStampCount, totalStamps = 6, moonStampCount, previewMode = false, nearbyName,
+  planetStampCount, planetTotalStamps = 3, totalStamps = 6, moonStampCount, previewMode = false, nearbyName,
   onMenu, onPassport, onGuide, onCredits, onInteract,
 }: MoonGameShellProps) {
   const oxygenValue = Math.max(0, Math.min(100, oxygen));
@@ -51,7 +52,7 @@ export function MoonGameShell({
         <nav className="moon-hud-actions" aria-label="Mission controls">
           <button className="moon-hud-button" type="button" onClick={onMenu} aria-label="Open main menu"><MoonIcon name="menu" /><span className="moon-desktop-label">Menu</span></button>
           <button className="moon-hud-button" type="button" onClick={onGuide} aria-label="Open field guide"><MoonIcon name="guide" /><span className="moon-desktop-label">Field guide</span></button>
-          <button className="moon-hud-button" type="button" onClick={onPassport} aria-label={`Open passport, ${localStamps} of ${planet === "Moon" ? 3 : 6} ${planet} stamps`}>
+          <button className="moon-hud-button" type="button" onClick={onPassport} aria-label={`Open passport, ${localStamps} of ${planetTotalStamps} ${planet} stamps`}>
             <MoonIcon name="passport" /><span className="moon-desktop-label">Passport</span><span className="moon-count">{stampCount} / {totalStamps}</span>
           </button>
           <div className="moon-o2" aria-label={`Oxygen ${oxygenValue} percent`}>

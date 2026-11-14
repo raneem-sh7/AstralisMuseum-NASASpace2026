@@ -20,6 +20,11 @@ type Screen = "welcome" | "select" | "game" | "failed" | "mars-complete" | "lega
 type Progress = { astronaut: string; planet: Planet; oxygen: number; completed: string[]; stamps: string[]; archivedStamps: string[] };
 type Modal = "how" | "credits" | "inspect" | "hook" | "story" | "memory" | "stamp" | "passport" | null;
 const SAVE_KEY = "astralis-progress-v1";
+const ARCHIVED_STAMP_LABELS: Record<string, string> = {
+  spirit: "Spirit Rover",
+  curiosity: "Curiosity Mars Rover",
+  perseverance: "Perseverance Mars Rover",
+};
 const emptyProgress = (): Progress => ({ astronaut: "christina-koch", planet: "Mars", oxygen: 60, completed: [], stamps: [], archivedStamps: [] });
 
 function loadProgress(): Progress | null {
@@ -164,7 +169,7 @@ function LegacyWall({ onExploreAgain, onMainMenu, onPassport }: { onExploreAgain
       <div className="legacy-title">
         <span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span>
         <h1 className="display mt-3 text-4xl font-bold sm:text-6xl">THE LEGACY WALL</h1>
-        <p className="legacy-subtitle">NINE MISSIONS. ONE LEGACY.</p>
+        <p className="legacy-subtitle">{EXHIBITS.length} MISSIONS. ONE LEGACY.</p>
         <p className="legacy-catchline">“Their missions may have ended, but their discoveries live on.”</p>
       </div>
       <div className="legacy-wall mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
@@ -190,6 +195,7 @@ function LegacyWall({ onExploreAgain, onMainMenu, onPassport }: { onExploreAgain
 
 function MarsCompletion({ onContinue, onPassport, previewMode, moonComplete }: { onContinue: () => void; onPassport: () => void; previewMode: boolean; moonComplete: boolean }) {
   const marsExhibits = EXHIBITS.filter(exhibit => exhibit.planet === "Mars");
+  const restoredCount = marsExhibits.length;
   return <section className="legacy-finale relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-3 py-6 sm:px-5 sm:py-10">
     <div className="legacy-deep-space" aria-hidden="true">
       <img src="/images/welcome/tarantula-nebula.png" alt="" />
@@ -201,7 +207,7 @@ function MarsCompletion({ onContinue, onPassport, previewMode, moonComplete }: {
       </div>
       <span className="mono mt-5 block text-[10px] tracking-[.25em] text-orange-100">MARS MUSEUM / EXPEDITION COMPLETE</span>
       <h1 className="display mt-3 text-3xl font-bold sm:text-5xl">THE MARTIAN ARCHIVE IS COMPLETE</h1>
-      <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">{moonComplete ? "All six Mars mission memories are restored, and the Moon museum is already complete. Your passport keeps both worlds ready to revisit." : "All six Mars mission memories are restored. Your passport now recommends the Moon as the next museum to explore."}</p>
+      <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">{moonComplete ? `All ${restoredCount} Mars mission memories are restored, and the Moon museum is already complete. Your passport keeps both worlds ready to revisit.` : `All ${restoredCount} Mars mission memories are restored. Your passport now recommends the Moon as the next museum to explore.`}</p>
       {previewMode && <p className="mono mt-3 text-[9px] tracking-[.15em] text-amber-100">PREVIEW ONLY · PROGRESS IS NOT SAVED</p>}
       <div className="mt-7 grid grid-cols-2 gap-2 text-left sm:grid-cols-3 sm:gap-3">
         {marsExhibits.map(exhibit => <article key={exhibit.id} className="flex min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[.035] p-3 sm:gap-3">
@@ -235,7 +241,7 @@ function Passport({ progress, activePlanet, close, onTravel }: { progress: Progr
   return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
     <div className="passport-book screen-in max-h-[90dvh] w-full max-w-3xl overflow-y-auto rounded-3xl border p-5 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="passport-title">
       <header className="flex items-start justify-between gap-4">
-        <div><div className="mono text-[10px] tracking-[.24em] text-cyan-200/70">ASTRALIS TRAVEL DOCUMENT</div><h2 id="passport-title" className="display mt-2 text-3xl font-bold sm:text-4xl">Space passport</h2><p className="mt-1 text-sm text-slate-400">Two worlds. Nine quiet legacies.</p><p className="mt-2 text-xs text-slate-300">Progress saves independently. Visit either museum whenever you like.</p></div>
+        <div><div className="mono text-[10px] tracking-[.24em] text-cyan-200/70">ASTRALIS TRAVEL DOCUMENT</div><h2 id="passport-title" className="display mt-2 text-3xl font-bold sm:text-4xl">Space passport</h2><p className="mt-1 text-sm text-slate-400">Two worlds. {EXHIBITS.length} quiet legacies.</p><p className="mt-2 text-xs text-slate-300">Progress saves independently. Visit either museum whenever you like.</p></div>
         <button onClick={close} className="btn-secondary grid h-10 w-10 place-items-center rounded-full" aria-label="Close passport"><Icon name="close" /></button>
       </header>
       <div className="passport-spread mt-6 grid gap-3 sm:grid-cols-2">
@@ -255,11 +261,11 @@ function Passport({ progress, activePlanet, close, onTravel }: { progress: Progr
           </section>;
         })}
       </div>
-      <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[.03] px-4 py-3"><span className="text-xs text-slate-400">MEMORIES RESTORED</span><span className="mono text-sm text-cyan-100">{totalRestored} <span className="text-slate-500">/ 9</span></span></div>
+      <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[.03] px-4 py-3"><span className="text-xs text-slate-400">MEMORIES RESTORED</span><span className="mono text-sm text-cyan-100">{totalRestored} <span className="text-slate-500">/ {EXHIBITS.length}</span></span></div>
       {archivedStamps.length > 0 && <section className="passport-archive mt-4 rounded-xl border border-amber-200/20 bg-amber-100/[.035] p-3" aria-label="Archived mission stamps">
         <h3 className="mono text-[9px] tracking-[.18em] text-amber-100/80">ARCHIVED MISSION STAMPS</h3>
-        <p className="mt-1 text-[10px] leading-relaxed text-slate-400">Saved from earlier exhibits; these records are preserved but do not count toward the current nine.</p>
-        <ul className="mt-2 flex flex-wrap gap-2">{archivedStamps.map(id => <li key={id} className="rounded-full border border-amber-100/20 px-3 py-1 text-[10px] text-amber-100/80">{id === "spirit" ? "Mars Exploration Rover Spirit" : id.replace(/-/g, " ")}</li>)}</ul>
+        <p className="mt-1 text-[10px] leading-relaxed text-slate-400">Saved from earlier exhibits; these records are preserved but do not count toward the current {EXHIBITS.length} active stamps.</p>
+        <ul className="mt-2 flex flex-wrap gap-2">{archivedStamps.map(id => <li key={id} className="rounded-full border border-amber-100/20 px-3 py-1 text-[10px] text-amber-100/80">{ARCHIVED_STAMP_LABELS[id] ?? id.replace(/-/g, " ")}</li>)}</ul>
       </section>}
     </div>
   </div>;
@@ -551,6 +557,7 @@ export default function App() {
       oxygen={progress.oxygen}
       stampCount={progress.stamps.length}
       planetStampCount={progress.stamps.filter(id => EXHIBITS.find(item => item.id === id)?.planet === progress.planet).length}
+      planetTotalStamps={EXHIBITS.filter(item => item.planet === progress.planet).length}
       totalStamps={EXHIBITS.length}
       moonStampCount={moonStampCount}
       nearbyName={nearbyName}
@@ -578,7 +585,7 @@ export default function App() {
       onPassport={openPassport}
     />}
     {screen === "legacy" && !allDone && <section className="relative z-10 grid min-h-[100dvh] place-items-center p-5">
-      <div className="legacy-scene max-w-lg text-center"><h1 className="display text-3xl font-bold">The Legacy Wall is locked</h1><p className="mt-3 text-sm text-slate-300">Collect all nine Moon and Mars passport stamps to open the final archive.</p><button onClick={() => setScreen("game")} className="btn-primary mt-5 rounded-xl px-5 py-3 font-bold">Return to the museum</button></div>
+      <div className="legacy-scene max-w-lg text-center"><h1 className="display text-3xl font-bold">The Legacy Wall is locked</h1><p className="mt-3 text-sm text-slate-300">Collect all {EXHIBITS.length} Moon and Mars passport stamps to open the final archive.</p><button onClick={() => setScreen("game")} className="btn-primary mt-5 rounded-xl px-5 py-3 font-bold">Return to the museum</button></div>
     </section>}
 
     {modal && <GameModal modal={modal} exhibit={exhibit} progress={progress} storyIndex={storyIndex} memoryIndex={memoryIndex} onClose={() => {

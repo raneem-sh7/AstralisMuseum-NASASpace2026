@@ -140,12 +140,13 @@ export class MarsScene extends Phaser.Scene {
 
   private createLocations() {
     const marsExhibits = EXHIBITS.filter(item => item.planet === "Mars");
-    const columns = this.compactWorld ? 2 : 3;
+    const columns = Math.min(this.compactWorld ? 2 : 3, marsExhibits.length);
     const rowCount = Math.ceil(marsExhibits.length / columns);
     const locations = marsExhibits.map((_exhibit, index) => {
       const row = Math.floor(index / columns);
-      const column = index % columns;
-      const x = columns === 2 ? (column === 0 ? .29 : .71) : [.22, .5, .78][column];
+      const itemsInRow = Math.min(columns, marsExhibits.length - row * columns);
+      const column = index % columns + (columns - itemsInRow) / 2;
+      const x = columns === 2 ? .29 + column * .42 : [.22, .5, .78][column];
       const y = rowCount === 1 ? .52 : this.compactWorld
         ? .35 + row * .19
         : .36 + row * .34;

@@ -3,7 +3,7 @@ import type { Exhibit } from "./exhibits";
 const originalCharacterCredit =
   "Original ASTRALIS cartoon vector character artwork created for this project; not a NASA photograph, NASA engineering diagram, or NASA endorsement.";
 
-export const MARS_EXHIBITS: Exhibit[] = [
+const MARS_EXHIBIT_CATALOG: Exhibit[] = [
   {
     id: "sojourner",
     name: "Sojourner Rover",
@@ -437,6 +437,10 @@ export const MARS_EXHIBITS: Exhibit[] = [
     ]
   }
 ];
+
+// Restore the original three-stop Mars route; removed mission stamps remain archived in Passport.
+const ACTIVE_MARS_EXHIBIT_IDS = new Set(["sojourner", "opportunity", "ingenuity"]);
+export const MARS_EXHIBITS = MARS_EXHIBIT_CATALOG.filter(exhibit => ACTIVE_MARS_EXHIBIT_IDS.has(exhibit.id));
 
 export const MARS_ART_CREDIT =
   "The existing Mars character artwork is original ASTRALIS cartoon vector artwork created for this project; it is not NASA photography or official engineering art.";

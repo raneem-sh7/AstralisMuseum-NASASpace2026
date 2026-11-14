@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
 import { EXHIBITS, EXHIBIT_ID_ALIASES } from "./data/exhibits";
-import { ASTRONAUTS, AVATAR_CREDIT, getAstronaut, normalizeAstronautId } from "./data/astronauts";
+import { ASTRONAUTS, AVATAR_CREDIT, normalizeAstronautId } from "./data/astronauts";
 import { AstronautSelection } from "./components/AstronautSelection";
 import type { Exhibit } from "./data/exhibits";
 import MuseumCanvas from "./game/MuseumCanvas";
@@ -17,10 +17,10 @@ import { MarsDialogue } from "./components/mars/MarsDialogue";
 
 type Planet = "Moon" | "Mars";
 type Screen = "welcome" | "select" | "game" | "failed" | "legacy";
-type Progress = { astronaut: string; planet: Planet; oxygen: number; completed: string[]; stamps: string[] };
+type Progress = { astronaut: string; planet: Planet; oxygen: number; completed: string[]; stamps: string[]; archivedStamps: string[] };
 type Modal = "how" | "credits" | "inspect" | "hook" | "story" | "memory" | "stamp" | "passport" | "travel" | null;
 const SAVE_KEY = "astralis-progress-v1";
-const emptyProgress = (): Progress => ({ astronaut: "christina-koch", planet: "Moon", oxygen: 60, completed: [], stamps: [] });
+const emptyProgress = (): Progress => ({ astronaut: "christina-koch", planet: "Moon", oxygen: 60, completed: [], stamps: [], archivedStamps: [] });
 
 function loadProgress(): Progress | null {
   try {
@@ -28,18 +28,21 @@ function loadProgress(): Progress | null {
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<Progress>;
     if (!value.astronaut || !["Moon", "Mars"].includes(value.planet ?? "") || typeof value.oxygen !== "number") return null;
-    const normalizeIds = (ids: unknown) => Array.isArray(ids)
-      ? [...new Set(ids
-        .filter((id): id is string => typeof id === "string")
-        .map((id) => EXHIBIT_ID_ALIASES[id] ?? id)
-        .filter((id) => EXHIBITS.some((exhibit) => exhibit.id === id)))]
-      : [];
+    const knownExhibitIds = new Set(EXHIBITS.map(exhibit => exhibit.id));
+    const rawIds = (...lists: unknown[]) => lists.flatMap(ids => Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []);
+    const normalizeIds = (ids: unknown) => [...new Set(rawIds(ids)
+      .map((id) => EXHIBIT_ID_ALIASES[id] ?? id)
+      .filter((id) => knownExhibitIds.has(id)))];
+    const archivedStamps = [...new Set(rawIds(value.archivedStamps, value.completed, value.stamps)
+      .map(id => EXHIBIT_ID_ALIASES[id] ?? id)
+      .filter(id => !knownExhibitIds.has(id)))];
     return {
       astronaut: normalizeAstronautId(value.astronaut),
       planet: value.planet as Planet,
       oxygen: Math.max(0, Math.min(100, value.oxygen)),
       completed: normalizeIds(value.completed),
-      stamps: normalizeIds(value.stamps)
+      stamps: normalizeIds(value.stamps),
+      archivedStamps
     };
   } catch { return null; }
 }
@@ -149,13 +152,13 @@ function LegacyWall({ onExploreAgain, onMainMenu }: { onExploreAgain: () => void
     <div className="legacy-deep-space" aria-hidden="true">
       <img src="/images/welcome/tarantula-nebula.png" alt="" />
       <div className="legacy-space-vignette" />
-      <div className="legacy-world-reveal">
-        <span className="legacy-world earth">EARTH</span>
-        <span className="legacy-world moon">MOON</span>
-        <span className="legacy-world mars">MARS</span>
-      </div>
     </div>
     <div className="legacy-scene legacy-cinematic screen-in w-full max-w-6xl">
+      <div className="legacy-world-reveal legacy-world-reveal--panel" aria-label="Earth, Moon, and Mars">
+        <span className="legacy-world earth"><small className="legacy-world-label">EARTH</small></span>
+        <span className="legacy-world moon"><small className="legacy-world-label">MOON</small></span>
+        <span className="legacy-world mars"><small className="legacy-world-label">MARS</small></span>
+      </div>
       <div className="legacy-title">
         <span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span>
         <h1 className="display mt-3 text-4xl font-bold sm:text-6xl">THE LEGACY WALL</h1>
@@ -202,6 +205,11 @@ function Passport({ progress, close, onTravel }: { progress: Progress; close: ()
         ))}
       </div>
       <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[.03] px-4 py-3"><span className="text-xs text-slate-400">MEMORIES RESTORED</span><span className="mono text-sm text-cyan-100">{progress.stamps.length} <span className="text-slate-500">/ 6</span></span></div>
+      {progress.archivedStamps.length > 0 && <section className="passport-archive mt-4 rounded-xl border border-amber-200/20 bg-amber-100/[.035] p-3" aria-label="Archived mission stamps">
+        <h3 className="mono text-[9px] tracking-[.18em] text-amber-100/80">ARCHIVED MISSION STAMPS</h3>
+        <p className="mt-1 text-[10px] leading-relaxed text-slate-400">Saved from earlier exhibits; these records are preserved but do not count toward the current six.</p>
+        <ul className="mt-2 flex flex-wrap gap-2">{progress.archivedStamps.map(id => <li key={id} className="rounded-full border border-amber-100/20 px-3 py-1 text-[10px] text-amber-100/80">{id === "spirit" ? "Mars Exploration Rover Spirit" : id.replace(/-/g, " ")}</li>)}</ul>
+      </section>}
       {moonComplete && progress.planet === "Moon" && <button onClick={onTravel} className="btn-primary mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Travel to Mars <Icon name="arrow" /></button>}
     </div>
   </div>;

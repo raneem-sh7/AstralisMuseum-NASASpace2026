@@ -26,3 +26,9 @@ When integrating a Phaser scene with React, signal readiness from the scene's `c
 **Why:** A pre-boot readiness listener can access an undefined event emitter and crash the React canvas mount.
 
 **How to apply:** Pass a readiness callback into scene configuration, invoke it at the end of `create()`, and have interactive tests wait for that signal before sending keys.
+
+When a saved exhibit belongs to a retired mission, preserve its stamp as an archived record rather than relabeling it as a different mission's stamp.
+
+**Why:** A Spirit passport stamp records progress through Spirit content; converting it to Ingenuity would falsely claim the player completed a different mission.
+
+**How to apply:** Keep archived mission IDs outside the active exhibit completion and stamp lists, exclude them from unlock counts, and show the old record separately in the passport.

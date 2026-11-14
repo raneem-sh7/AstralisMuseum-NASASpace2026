@@ -59,9 +59,19 @@ const ready = async () => {
   // instrumentation out of the production application.
   await evaluate(`(() => { window.__testScene = () => { const element = document.querySelector('.game-canvas'); let fiber = element[Object.keys(element).find(key => key.startsWith('__reactFiber'))]; while (fiber && !fiber.memoizedProps?.sceneRef) fiber = fiber.return; return fiber.memoizedProps.sceneRef.current; }; return true; })()`);
 };
-async function capture(name) {
+async function capture(name, fullPage = false) {
   mkdirSync("generated-artifacts/astronaut-tests", { recursive: true });
-  const result = await cdp("Page.captureScreenshot", { format: "jpeg", quality: 85 });
+  let result;
+  if (fullPage) {
+    const metrics = await cdp("Page.getLayoutMetrics");
+    const size = metrics.cssContentSize ?? metrics.contentSize;
+    result = await cdp("Page.captureScreenshot", {
+      format: "jpeg", quality: 85, captureBeyondViewport: true,
+      clip: { x: 0, y: 0, width: size.width, height: size.height, scale: 1 }
+    });
+  } else {
+    result = await cdp("Page.captureScreenshot", { format: "jpeg", quality: 85 });
+  }
   writeFileSync(`generated-artifacts/astronaut-tests/${name}.jpg`, Buffer.from(result.data, "base64"));
 }
 async function resumeFixture(value) {
@@ -212,21 +222,88 @@ try {
   const saved = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
   assert(saved.astronaut==="victor-glover" && saved.planet==="Mars" && saved.stamps.length===3 && saved.oxygen===100, "Travel/save/oxygen regression");
   await capture("victor-mars");
+  const marsExhibits = exhibits.filter(e => e.planet === "Mars");
+  assert(marsExhibits.length === 3 && marsExhibits.map(e => e.id).join(",") === "sojourner,opportunity,ingenuity", "Mars exhibit list is not the requested rover trio");
+  assert(await evaluate(`document.querySelector('.legacy-wall') === null`), "Legacy Wall appeared before all six stamps");
+  for (const [exhibitIndex, item] of marsExhibits.entries()) {
+    await evaluate(`(() => { const scene = window.__testScene(); const target = scene.exhibits.find(item => item.id === ${JSON.stringify(item.id)}); scene.player.setPosition(target.x, target.y + 106); return true; })()`);
+    await waitFor(`document.querySelector('.inspect-prompt')`, `${item.id} inspect prompt`);
+    await press("e", 80);
+    await waitFor(`document.querySelector('.mars-dialogue')?.innerText.includes(${JSON.stringify(item.name)})`, `${item.id} inspect screen`);
+    assert(await evaluate(`document.querySelectorAll('.mars-sources .mars-source-block a').length >= 2 && document.querySelector('.mars-photo-credit')?.innerText.includes(${JSON.stringify(item.referenceImageCredit)})`), `${item.id} NASA credits missing`);
+    assert(await evaluate(`document.querySelectorAll('.mars-sources .mars-independent-note').length === 1 && document.querySelector('.mars-character-card > span')?.innerText.includes('VECTOR ART')`), `${item.id} art/project disclosure missing`);
+    await clickText("Meet the exhibit");
+    assert(await evaluate(`document.querySelectorAll('.mars-answer').length === 4 && document.querySelector('.mars-prompt')?.innerText === ${JSON.stringify(item.hook.prompt)}`), `${item.id} Hook Question or four options missing`);
+    await click(".mars-answer", item.hook.answer);
+    await click(".mars-primary");
+    assert(await evaluate(`document.querySelector('.mars-story-line') && document.querySelector('.mars-story-progress')?.children.length === 6`), `${item.id} does not have six story boxes`);
+    for (let story = 0; story < item.story.length; story++) {
+      assert(await evaluate(`document.querySelector('.mars-story-line')?.innerText === ${JSON.stringify(item.story[story])}`), `${item.id} story box ${story + 1} is missing`);
+      await click(".mars-primary");
+    }
+    assert(await evaluate(`document.querySelector('.mars-prompt')?.innerText === ${JSON.stringify(item.memory[0].prompt)} && document.querySelectorAll('.mars-answer').length === 4`), `${item.id} Memory Quiz did not start with four options`);
+    for (const [memoryIndex, question] of item.memory.entries()) {
+      if (exhibitIndex === 0 && memoryIndex === 0) {
+        await click(".mars-answer", (question.answer + 1) % 4);
+        assert(await evaluate(`document.querySelector('.mars-oxygen')?.innerText.includes('80') && Boolean(document.querySelector('.mars-explanation.is-wrong'))`), "Wrong Mars answer did not subtract 20 oxygen or explain retry");
+        await clickText("Try this memory again");
+      }
+      await click(".mars-answer", question.answer);
+      if (memoryIndex < item.memory.length - 1) {
+        const nextQuestion = item.memory[memoryIndex + 1];
+        await waitFor(`document.querySelector('.mars-prompt')?.innerText === ${JSON.stringify(nextQuestion.prompt)}`, `${item.id} memory question ${memoryIndex + 2}`);
+      }
+    }
+    await waitFor(`document.querySelector('.mars-stamp-phase')`, `${item.id} passport stamp`);
+    assert(await evaluate(`document.querySelectorAll('.mars-answer-review li').length === 3 && document.querySelectorAll('.stamp-full').length === 0`), `${item.id} answer review missing or unintended shared stamp`);
+    assert(await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1')).stamps.includes(${JSON.stringify(item.id)})`), `${item.id} stamp was not saved`);
+    console.log(`PASS ${item.id}: NASA-backed inspect → hook → six story boxes → three memory questions → stamp`);
+    if (exhibitIndex < marsExhibits.length - 1) {
+      await clickText("Return to the gallery");
+      await ready();
+    } else {
+      await clickText("Return to the gallery");
+      await waitFor(`document.querySelector('.legacy-scene h1')?.innerText === 'THE LEGACY WALL'`, "six-stamp Legacy Wall");
+      await waitFor(`[...document.querySelectorAll('.legacy-item')].length === 6 && [...document.querySelectorAll('.legacy-item')].every(item => getComputedStyle(item).opacity === '1')`, "six character reveals");
+      await waitFor(`[...document.querySelectorAll('.legacy-stamp-reveal .stamp-full')].length === 6 && [...document.querySelectorAll('.legacy-stamp-reveal .stamp-full')].every(stamp => getComputedStyle(stamp).opacity === '1')`, "six cinematic stamp reveals");
+      assert(await evaluate(`document.querySelectorAll('.legacy-item').length === 6 && document.querySelectorAll('.legacy-item .stamp-full').length === 6`), "Legacy Wall does not show all six characters and stamps");
+      assert(await evaluate(`[...document.querySelectorAll('.legacy-item .legacy-art img')].length === 6 && [...document.querySelectorAll('.legacy-item .legacy-art img')].every(image => image.complete && image.naturalWidth > 0)`), "Legacy Wall equipment character artwork did not load");
+      assert(await evaluate(`document.querySelectorAll('.legacy-world-reveal--panel .legacy-world').length === 3`), "Legacy Wall is missing Earth, Moon, or Mars");
+      assert(await evaluate(`document.querySelector('.legacy-subtitle')?.innerText === 'SIX MISSIONS. ONE LEGACY.' && document.querySelector('.legacy-catchline')?.innerText.includes('Their missions may have ended')`), "Legacy Wall closing title or message missing");
+      assert(await evaluate(`document.querySelector('.legacy-deep-space img')?.complete && document.querySelector('.legacy-deep-space img').naturalWidth > 0 && document.querySelector('.legacy-image-credit')?.innerText.includes('Tarantula Nebula')`), "NASA deep-space background or its credit did not load");
+      const completeSave = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
+      assert(completeSave.planet === "Mars" && completeSave.oxygen === 100 && completeSave.stamps.length === 6 && completeSave.completed.length === 6, "Full Mars completion did not preserve six stamps and oxygen");
+      await cdp("Page.reload");
+      await waitFor(`document.querySelector('.astralis-welcome__enter')`, "saved Legacy Wall welcome");
+      await click(".astralis-welcome__enter");
+      await waitFor(`document.querySelectorAll('.legacy-item').length === 6`, "saved Legacy Wall after refresh");
+      await waitFor(`[...document.querySelectorAll('.legacy-item')].every(item => getComputedStyle(item).opacity === '1') && [...document.querySelectorAll('.legacy-stamp-reveal .stamp-full')].every(stamp => getComputedStyle(stamp).opacity === '1')`, "restored cinematic Legacy Wall");
+      assert(await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1')).stamps.length === 6`), "Refresh did not restore all six Legacy Wall stamps");
+      await cdp("Emulation.setDeviceMetricsOverride", { width: 402, height: 874, deviceScaleFactor: 1, mobile: true });
+      await sleep(200);
+      assert(await evaluate(`document.documentElement.scrollWidth <= innerWidth && document.querySelectorAll('.legacy-item').length === 6`), "Mobile Legacy Wall overflows or loses a character");
+      await capture("legacy-wall-mobile", true);
+      await cdp("Emulation.clearDeviceMetricsOverride");
+    }
+  }
   await resumeFixture({...saved, astronaut:"purple",oxygen:73,completed:[...saved.completed,"spirit"],stamps:[...saved.stamps,"spirit"]});
   await ready();
   const migrated = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
-  assert(migrated.astronaut==="christina-koch" && migrated.oxygen===73 && migrated.stamps.length===4 && migrated.completed.length===4 && migrated.planet==="Mars", "Old save migration reset progress");
+  assert(migrated.astronaut==="christina-koch" && migrated.oxygen===73 && migrated.stamps.length===3 && migrated.completed.length===3 && migrated.archivedStamps.includes("spirit") && migrated.planet==="Mars", "Old save migration reset valid progress or failed to preserve the retired Spirit record");
+  await click(".passport-trigger");
+  assert(await evaluate(`document.querySelector('.passport-archive')?.innerText.includes('Mars Exploration Rover Spirit') && document.querySelector('.passport-book').innerText.includes('3 / 6')`), "Retired Spirit record is not clearly archived outside current progression");
+  await click('.passport-book button[aria-label="Close passport"]');
   await checkDirections("christina-koch");
   await resumeFixture({astronaut:"christina-koch",planet:"Moon",oxygen:60,completed:[],stamps:[]});
   await ready(); await checkDirections("christina-koch"); await capture("christina-moon");
   for (const id of ["christina-koch","victor-glover"]) {
     await resumeFixture({astronaut:id,planet:"Mars",oxygen:80,completed:exhibits.map(e=>e.id),stamps:exhibits.map(e=>e.id)});
-    await waitFor(`document.querySelector('.legacy-scene [data-astronaut="${id}"] img')?.complete`, `${id} Legacy Wall`);
-    assert(await evaluate(`document.querySelector('.legacy-scene [data-astronaut="${id}"] img').getAttribute('src').includes('${id}-idle.png')`), "Legacy Wall identity mismatch");
+    await waitFor(`document.querySelectorAll('.legacy-item').length === 6 && JSON.parse(localStorage.getItem('astralis-progress-v1')).astronaut === ${JSON.stringify(id)}`, `${id} saved Legacy Wall`);
+    await waitFor(`[...document.querySelectorAll('.legacy-item')].every(item => getComputedStyle(item).opacity === '1') && [...document.querySelectorAll('.legacy-stamp-reveal .stamp-full')].every(stamp => getComputedStyle(stamp).opacity === '1')`, `${id} complete Legacy Wall reveal`);
   }
-  await capture("legacy-wall");
+  await capture("legacy-wall", true);
   assert(errors.length===0, `Browser exceptions: ${errors.join("\n")}`);
-  console.log("PASS two profiles, biographies, mobile layout, both astronaut identities in Moon/Mars/Legacy, directional animation, oxygen, stamps, unlock, LocalStorage migration, and zero browser exceptions.");
+  console.log("PASS two profiles, biographies, mobile layout, Moon/Mars/Legacy for both astronauts, all six Mars exhibits, oxygen, stamps, unlock, save migration, and zero browser exceptions.");
   }
 } catch (error) {
   console.error("FAIL",error.stack);

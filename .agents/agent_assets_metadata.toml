@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_4LWXJrtalA__njzKvzUY"
+uri = "file://generated-artifacts/astronaut-previews/christina-koch-idle.png"
+type = "image"
+title = "Christina Koch — Artemis II Mission Specialist"
+description = "Transparent, single-pose 2D idle-avatar concept. AI-generated art, not a NASA portrait."
+logical_id = "765d08f6-a04a-4d47-beb4-46c285b36c36"
+content_hash = "sha256:3ee59556e61f5a18bb3b1f5c7b868217243261a6c187f44770b3097b11ef3271"
+size = 1259649
+mtime_ms = 1794672272092
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:470fa3fd-e48e-48b2-b175-dd7696f4ae01/765d08f6-a04a-4d47-beb4-46c285b36c36/0a5d4bd2-5eca-49ae-8fbe-599f038fa492"
+storage_version_token = "1794672335731757"
+content_type = "image/png"
+
+[[outputs]]
+id = "AyRTc-kw7qPIrl7wRYhXX"
+uri = "file://generated-artifacts/astronaut-previews/victor-glover-idle.png"
+type = "image"
+title = "Victor Glover — Artemis II Pilot"
+description = "Transparent, single-pose 2D idle-avatar concept. AI-generated art, not a NASA portrait."
+logical_id = "091ed621-e25d-43d5-94a2-2ba73cc601e8"
+content_hash = "sha256:dc0a3d8f8ad9cb25eebafae34500fcb451d8666d6c2a753ffa0e7f07fd5c2154"
+size = 1276294
+mtime_ms = 1794672273226
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:470fa3fd-e48e-48b2-b175-dd7696f4ae01/091ed621-e25d-43d5-94a2-2ba73cc601e8/f516ddd1-4a20-49c5-952d-41701064ef41"
+storage_version_token = "1794672337055264"
+content_type = "image/png"

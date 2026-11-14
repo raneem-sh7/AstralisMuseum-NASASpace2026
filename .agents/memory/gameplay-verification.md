@@ -27,8 +27,20 @@ When integrating a Phaser scene with React, signal readiness from the scene's `c
 
 **How to apply:** Pass a readiness callback into scene configuration, invoke it at the end of `create()`, and have interactive tests wait for that signal before sending keys.
 
+Check for a loaded walk spritesheet and a complete frame set before generating or playing Phaser animations. If the sheet is unavailable, keep movement functional with the idle sprite and retry animation setup later.
+
+**Why:** Generating frames for a missing texture can leave an empty animation that crashes when Phaser starts it.
+
+**How to apply:** Guard frame generation with a texture-exists check, verify the expected frame count, and avoid calling `play()` until the direction animations are valid.
+
 When a saved exhibit belongs to a retired mission, preserve its stamp as an archived record rather than relabeling it as a different mission's stamp.
 
 **Why:** A Spirit passport stamp records progress through Spirit content; converting it to Ingenuity would falsely claim the player completed a different mission.
 
 **How to apply:** Keep archived mission IDs outside the active exhibit completion and stamp lists, exclude them from unlock counts, and show the old record separately in the passport.
+
+When adding progress fields, normalize persisted saves and guard UI reads against older in-memory state.
+
+**Why:** React Fast Refresh can preserve state initialized before a new required progress field was introduced.
+
+**How to apply:** Give new fields loader defaults and use safe defaults when rendering them, so a hot-reloaded session cannot crash before a full reload.

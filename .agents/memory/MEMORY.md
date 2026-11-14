@@ -1,2 +1,2 @@
-- [Progress-safe gameplay checks](gameplay-verification.md) — preserve stamps, archive retired mission records, and wait for Phaser readiness before key-driven tests.
+- [Progress-safe gameplay checks](gameplay-verification.md) — normalize saved progress, preserve archives, guard walk sheets, and wait for Phaser readiness.
 - [Approved astronaut artwork](astronaut-art-direction.md) — retain the approved Koch/Glover identities and verify real alpha on generated walking sheets.

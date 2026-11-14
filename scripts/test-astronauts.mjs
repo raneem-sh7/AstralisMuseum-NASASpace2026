@@ -147,7 +147,7 @@ try {
     await waitFor(`document.querySelector('.astralis-welcome__new')`, "saved-player welcome options");
     await click(".astralis-welcome__enter"); await ready();
     assert(await evaluate(`document.querySelector('.game-canvas').dataset.astronaut === 'victor-glover' && document.querySelector('.game-canvas').getAttribute('aria-label').startsWith('Mars')`), "Returning save did not restore Victor and Mars");
-    assert(await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1')).oxygen === 33 && JSON.parse(localStorage.getItem('astralis-progress-v1')).stamps.length === 1`), "Returning save changed progress");
+    assert(await evaluate(`(() => { const saved = JSON.parse(localStorage.getItem('astralis-progress-v1')); return saved.oxygen === 33 && saved.stamps.length === 0 && saved.archivedStamps.includes('spirit'); })()`), "Returning save lost the retired Spirit record or changed oxygen");
     await click('button[aria-label="Main menu"]');
     await waitFor(`document.querySelector('.astralis-welcome__new')`, "return to saved welcome");
     await click(".astralis-welcome__new");
@@ -296,6 +296,10 @@ try {
   await checkDirections("christina-koch");
   await resumeFixture({astronaut:"christina-koch",planet:"Moon",oxygen:60,completed:[],stamps:[]});
   await ready(); await checkDirections("christina-koch"); await capture("christina-moon");
+  const missingWalkFallback = await evaluate(`import('/src/game/AstronautActor.ts').then(({AstronautActor}) => { const scene = window.__testScene(); scene.textures.remove('christina-koch-walk'); const actor = new AstronautActor(scene, 780, 300, 'christina-koch'); actor.update(1, 0); return actor.sprite.texture.key; })`);
+  assert(missingWalkFallback === "christina-koch-idle", "Missing walk sheet did not safely fall back to idle art");
+  assert(errors.length === 0, `Missing walk sheet raised a browser exception: ${errors.join("\n")}`);
+  console.log("PASS missing astronaut walk sheet: movement animation falls back without crashing");
   for (const id of ["christina-koch","victor-glover"]) {
     await resumeFixture({astronaut:id,planet:"Mars",oxygen:80,completed:exhibits.map(e=>e.id),stamps:exhibits.map(e=>e.id)});
     await waitFor(`document.querySelectorAll('.legacy-item').length === 6 && JSON.parse(localStorage.getItem('astralis-progress-v1')).astronaut === ${JSON.stringify(id)}`, `${id} saved Legacy Wall`);

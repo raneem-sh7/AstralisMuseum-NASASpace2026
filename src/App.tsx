@@ -187,6 +187,7 @@ function LegacyWall({ onExploreAgain, onMainMenu }: { onExploreAgain: () => void
 
 function Passport({ progress, close, onTravel }: { progress: Progress; close: () => void; onTravel: () => void }) {
   const moonComplete = EXHIBITS.filter(e => e.planet === "Moon").every(e => progress.stamps.includes(e.id));
+  const archivedStamps = Array.isArray(progress.archivedStamps) ? progress.archivedStamps : [];
   return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
     <div className="passport-book screen-in w-full max-w-3xl overflow-hidden rounded-3xl border p-5 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="passport-title">
       <header className="flex items-start justify-between gap-4">
@@ -205,10 +206,10 @@ function Passport({ progress, close, onTravel }: { progress: Progress; close: ()
         ))}
       </div>
       <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[.03] px-4 py-3"><span className="text-xs text-slate-400">MEMORIES RESTORED</span><span className="mono text-sm text-cyan-100">{progress.stamps.length} <span className="text-slate-500">/ 6</span></span></div>
-      {progress.archivedStamps.length > 0 && <section className="passport-archive mt-4 rounded-xl border border-amber-200/20 bg-amber-100/[.035] p-3" aria-label="Archived mission stamps">
+      {archivedStamps.length > 0 && <section className="passport-archive mt-4 rounded-xl border border-amber-200/20 bg-amber-100/[.035] p-3" aria-label="Archived mission stamps">
         <h3 className="mono text-[9px] tracking-[.18em] text-amber-100/80">ARCHIVED MISSION STAMPS</h3>
         <p className="mt-1 text-[10px] leading-relaxed text-slate-400">Saved from earlier exhibits; these records are preserved but do not count toward the current six.</p>
-        <ul className="mt-2 flex flex-wrap gap-2">{progress.archivedStamps.map(id => <li key={id} className="rounded-full border border-amber-100/20 px-3 py-1 text-[10px] text-amber-100/80">{id === "spirit" ? "Mars Exploration Rover Spirit" : id.replace(/-/g, " ")}</li>)}</ul>
+        <ul className="mt-2 flex flex-wrap gap-2">{archivedStamps.map(id => <li key={id} className="rounded-full border border-amber-100/20 px-3 py-1 text-[10px] text-amber-100/80">{id === "spirit" ? "Mars Exploration Rover Spirit" : id.replace(/-/g, " ")}</li>)}</ul>
       </section>}
       {moonComplete && progress.planet === "Moon" && <button onClick={onTravel} className="btn-primary mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Travel to Mars <Icon name="arrow" /></button>}
     </div>

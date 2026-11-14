@@ -1,0 +1,1 @@
+- [Progress-safe gameplay checks](gameplay-verification.md) — preserve existing browser saves when testing fresh-start flows.

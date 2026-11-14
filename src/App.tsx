@@ -190,7 +190,7 @@ export default function App() {
   const allDone = EXHIBITS.every(e => progress.stamps.includes(e.id));
 
   useEffect(() => {
-    if (screen !== "failed" && screen !== "select" && progress.astronaut && progress.oxygen > 0) {
+    if ((screen === "game" || screen === "legacy") && progress.astronaut && progress.oxygen > 0) {
       try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); setHasSave(true); } catch { setHasSave(false); }
     }
   }, [progress, screen]);

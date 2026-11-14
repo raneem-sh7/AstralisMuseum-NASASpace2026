@@ -1,11 +1,13 @@
+import { publicAsset } from "../utils/publicAsset";
+
 export const ASTRONAUTS = [
   {
     id: "christina-koch",
     name: "Christina Koch",
     role: "Artemis II Mission Specialist",
-    portrait: "/images/astronauts/christina-koch-nasa.jpg",
-    idle: "/images/astronauts/christina-koch-idle.png",
-    walkSheet: "/images/astronauts/christina-koch-walk.png",
+    portrait: publicAsset("/images/astronauts/christina-koch-nasa.jpg"),
+    idle: publicAsset("/images/astronauts/christina-koch-idle.png"),
+    walkSheet: publicAsset("/images/astronauts/christina-koch-walk.png"),
     biography: "Christina Koch is an engineer, explorer, and NASA astronaut selected in 2013. Before becoming an astronaut, she worked on space science instruments and conducted research in remote environments, including Antarctica.",
     achievements: [
       "Served as a flight engineer on International Space Station Expeditions 59, 60, and 61.",
@@ -21,9 +23,9 @@ export const ASTRONAUTS = [
     id: "victor-glover",
     name: "Victor Glover",
     role: "Artemis II Pilot",
-    portrait: "/images/astronauts/victor-glover-nasa.jpg",
-    idle: "/images/astronauts/victor-glover-idle.png",
-    walkSheet: "/images/astronauts/victor-glover-walk.png",
+    portrait: publicAsset("/images/astronauts/victor-glover-nasa.jpg"),
+    idle: publicAsset("/images/astronauts/victor-glover-idle.png"),
+    walkSheet: publicAsset("/images/astronauts/victor-glover-walk.png"),
     biography: "Victor J. Glover, Jr. is a NASA astronaut selected in 2013 and a naval aviator and test pilot. His engineering and flight-test experience helped prepare him for spacecraft operations and long-duration spaceflight.",
     achievements: [
       "Piloted NASA's SpaceX Crew-1 spacecraft, Resilience, to the International Space Station.",

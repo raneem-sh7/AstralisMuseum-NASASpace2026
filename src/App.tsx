@@ -14,6 +14,7 @@ import { MoonGameShell } from "./components/moon/MoonGameShell";
 import { MoonCredits } from "./components/moon/MoonCredits";
 import { MoonCharacterPortrait } from "./components/moon/MoonCharacterPortrait";
 import { MarsDialogue } from "./components/mars/MarsDialogue";
+import { TARANTULA_NEBULA_IMAGE } from "./data/welcomeAssets";
 
 type Planet = "Moon" | "Mars";
 type Screen = "welcome" | "select" | "game" | "failed" | "mars-complete" | "legacy";
@@ -157,7 +158,7 @@ function Stamp({ exhibit, done }: { exhibit?: Exhibit; done: boolean }) {
 function LegacyWall({ onExploreAgain, onMainMenu, onPassport }: { onExploreAgain: () => void; onMainMenu: () => void; onPassport: () => void }) {
   return <section className="legacy-finale relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-3 py-6 sm:px-5 sm:py-10">
     <div className="legacy-deep-space" aria-hidden="true">
-      <img src="/images/welcome/tarantula-nebula.png" alt="" />
+      <img src={TARANTULA_NEBULA_IMAGE} alt="" />
       <div className="legacy-space-vignette" />
     </div>
     <div className="legacy-scene legacy-cinematic screen-in w-full max-w-6xl">
@@ -198,7 +199,7 @@ function MarsCompletion({ onContinue, onPassport, previewMode, moonComplete }: {
   const restoredCount = marsExhibits.length;
   return <section className="legacy-finale relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-3 py-6 sm:px-5 sm:py-10">
     <div className="legacy-deep-space" aria-hidden="true">
-      <img src="/images/welcome/tarantula-nebula.png" alt="" />
+      <img src={TARANTULA_NEBULA_IMAGE} alt="" />
       <div className="legacy-space-vignette" />
     </div>
     <div className="legacy-scene screen-in w-full max-w-5xl text-center">

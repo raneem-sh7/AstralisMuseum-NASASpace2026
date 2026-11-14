@@ -1,4 +1,5 @@
 import { MARS_EXHIBITS } from "./marsExhibits";
+import { publicAsset } from "../utils/publicAsset";
 
 export type OptionQuestion = {
   prompt: string;
@@ -37,9 +38,9 @@ export type Exhibit = {
   imageWarning?: string;
 };
 
-const eagleCharacterImage = "/images/moon/eagle_ai_character.jpg";
-const lunarRoverCharacterImage = "/images/moon/lrv_ai_character.jpg";
-const alsepCharacterImage = "/images/moon/alsep_ai_character_REPLACE.jpg";
+const eagleCharacterImage = publicAsset("/images/moon/eagle_ai_character.jpg");
+const lunarRoverCharacterImage = publicAsset("/images/moon/lrv_ai_character.jpg");
+const alsepCharacterImage = publicAsset("/images/moon/alsep_ai_character_REPLACE.jpg");
 
 export const EXHIBIT_ID_ALIASES: Record<string, string> = {
   // Preserve stamps saved under the previous Moon exhibit name.

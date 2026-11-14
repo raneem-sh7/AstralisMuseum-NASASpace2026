@@ -388,16 +388,14 @@ try {
     assert(await evaluate(`document.querySelector('.game-canvas').getAttribute('aria-label').startsWith('Moon') && JSON.parse(localStorage.getItem('astralis-progress-v1')).stamps.length === 6`), "Passport could not revisit completed Moon without losing stamps");
   }
   await resumeFixture({astronaut:"purple",planet:"Mars",oxygen:73,completed:["sojourner","spirit","opportunity","curiosity","perseverance","ingenuity"],stamps:["sojourner","spirit","opportunity","curiosity","perseverance","ingenuity"],archivedStamps:[]});
-  await ready();
-  const migrated = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
-  assert(migrated.astronaut==="christina-koch" && migrated.oxygen===73 && migrated.stamps.length===3 && migrated.completed.length===3 && ["sojourner","opportunity","ingenuity"].every(id => migrated.stamps.includes(id)) && ["spirit","curiosity","perseverance"].every(id => migrated.archivedStamps.includes(id)) && migrated.planet==="Mars", "Removed Mars stamps were not archived separately from the original three active missions");
-  await waitFor(`document.querySelector('.legacy-scene h1')?.innerText === 'THE MARTIAN ARCHIVE IS COMPLETE'`, "restored Mars completion screen");
+  await waitFor(`document.querySelector('.legacy-scene h1')?.innerText === 'THE MARTIAN ARCHIVE IS COMPLETE'`, "restored saved Mars completion");
   await clickText("Open Passport", ".legacy-scene button");
   await waitFor(`document.querySelector('.passport-book')`, "Passport for restored Mars save");
   assert(await evaluate(`document.querySelector('.passport-page.mars')?.innerText.includes('3 / 3') && document.querySelector('.passport-page.moon')?.innerText.includes('0 / 3') && document.querySelector('.passport-book')?.innerText.includes('3 / 6') && ['Spirit Rover','Curiosity Mars Rover','Perseverance Mars Rover'].every(name => document.querySelector('.passport-archive')?.innerText.includes(name))`), "Restored Mars save lost stamps, miscounted active progress, or hid archived missions");
   await click('.passport-page.moon button[aria-label="Enter Moon Museum"]'); await ready();
+  await waitFor(`(() => { const value = JSON.parse(localStorage.getItem('astralis-progress-v1')); return value?.planet === 'Moon' && value?.stamps.length === 3 && value?.archivedStamps.length === 3; })()`, "archived progress saved after Passport travel");
   const migratedAfterTravel = await evaluate(`JSON.parse(localStorage.getItem('astralis-progress-v1'))`);
-  assert(migratedAfterTravel.planet === "Moon" && migratedAfterTravel.oxygen === 73 && migratedAfterTravel.stamps.length === 3 && migratedAfterTravel.archivedStamps.length === 3, "Switching from a restored Mars save changed progress or archives");
+  assert(migratedAfterTravel.astronaut === "christina-koch" && migratedAfterTravel.planet === "Moon" && migratedAfterTravel.oxygen === 73 && migratedAfterTravel.stamps.length === 3 && migratedAfterTravel.completed.length === 3 && ["sojourner","opportunity","ingenuity"].every(id => migratedAfterTravel.stamps.includes(id)) && ["spirit","curiosity","perseverance"].every(id => migratedAfterTravel.archivedStamps.includes(id)), "Switching from a restored Mars save changed progress or archives");
   await checkDirections("christina-koch");
   await resumeFixture({astronaut:"christina-koch",planet:"Moon",oxygen:60,completed:[],stamps:[]});
   await ready();

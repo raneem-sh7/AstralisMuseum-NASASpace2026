@@ -1,4 +1,5 @@
 import type { Exhibit } from "./exhibits";
+import { publicAsset } from "../utils/publicAsset";
 
 const originalCharacterCredit =
   "Original ASTRALIS cartoon vector character artwork created for this project; not a NASA photograph, NASA engineering diagram, or NASA endorsement.";
@@ -19,11 +20,11 @@ const MARS_EXHIBIT_CATALOG: Exhibit[] = [
     color: 0xffb27e,
     symbol: "S",
     intro: "I was the first rover to operate on Mars. I arrived with Mars Pathfinder at Ares Vallis on July 4, 1997.",
-    characterImage: "/images/mars/sojourner.webp",
-    characterTalkImage: "/images/mars/sojourner-talking.webp",
+    characterImage: publicAsset("/images/mars/sojourner.webp"),
+    characterTalkImage: publicAsset("/images/mars/sojourner-talking.webp"),
     characterImageAlt: "Original cartoon vector character inspired by the six-wheeled Sojourner Mars rover.",
     characterImageCredit: originalCharacterCredit,
-    referenceImage: "/images/mars/sojourner.webp",
+    referenceImage: publicAsset("/images/mars/sojourner.webp"),
     referenceImageAlt: "ASTRALIS cartoon character illustration of Sojourner; not a NASA photograph.",
     referenceImageCredit: originalCharacterCredit,
     referenceImageSource: "https://science.nasa.gov/photojournal/newly-deployed-sojourner-rover/",
@@ -155,11 +156,11 @@ const MARS_EXHIBIT_CATALOG: Exhibit[] = [
     color: 0xffcc82,
     symbol: "O",
     intro: "I was one of NASA's twin Mars Exploration Rovers. My long journey helped scientists investigate Mars's watery past.",
-    characterImage: "/images/mars/opportunity.webp",
-    characterTalkImage: "/images/mars/opportunity-talking.webp",
+    characterImage: publicAsset("/images/mars/opportunity.webp"),
+    characterTalkImage: publicAsset("/images/mars/opportunity-talking.webp"),
     characterImageAlt: "Original cartoon vector character inspired by the six-wheeled Opportunity Mars rover.",
     characterImageCredit: originalCharacterCredit,
-    referenceImage: "/images/mars/opportunity.webp",
+    referenceImage: publicAsset("/images/mars/opportunity.webp"),
     referenceImageAlt: "ASTRALIS cartoon character illustration of Opportunity; not a NASA photograph.",
     referenceImageCredit: originalCharacterCredit,
     referenceImageSource: "https://science.nasa.gov/resource/opportunity-rovers-final-mars-images/",
@@ -372,11 +373,11 @@ const MARS_EXHIBIT_CATALOG: Exhibit[] = [
     color: 0xe8d5a4,
     symbol: "I",
     intro: "I was a small technology demonstrator carried to Mars with Perseverance to test powered flight in the thin Martian atmosphere.",
-    characterImage: "/images/mars/ingenuity.webp",
-    characterTalkImage: "/images/mars/ingenuity-talking.webp",
+    characterImage: publicAsset("/images/mars/ingenuity.webp"),
+    characterTalkImage: publicAsset("/images/mars/ingenuity-talking.webp"),
     characterImageAlt: "Original cartoon vector character inspired by NASA's Ingenuity Mars Helicopter.",
     characterImageCredit: originalCharacterCredit,
-    referenceImage: "/images/mars/ingenuity.webp",
+    referenceImage: publicAsset("/images/mars/ingenuity.webp"),
     referenceImageAlt: "ASTRALIS cartoon character illustration of Ingenuity; not a NASA photograph.",
     referenceImageCredit: originalCharacterCredit,
     referenceImageSource: "https://science.nasa.gov/photojournal/nasas-ingenuity-mars-helicopter/",
@@ -450,7 +451,7 @@ export const MARS_ENVIRONMENT = {
   nasaId: "PIA24921",
   title: "Detailed Panorama of Mars' Jezero Crater Delta",
   sourcePage: "https://science.nasa.gov/photojournal/detailed-panorama-of-mars-jezero-crater-delta/",
-  localImage: "/images/mars/jezero.webp",
+  localImage: publicAsset("/images/mars/jezero.webp"),
   credit: "NASA/JPL-Caltech/ASU/MSSS",
   note: "NASA panorama shown as a real Martian landscape. The game adds interface overlays and original cartoon equipment characters."
 };

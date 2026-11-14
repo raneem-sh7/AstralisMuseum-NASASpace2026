@@ -39,7 +39,8 @@ export function MoonCredits({ exhibit }: MoonCreditsProps) {
       </div>)}
       <div className="moon-credit-record">
         <small>Character illustration</small>
-        <p>{MOON_ART_CREDIT}</p>
+        <p>{exhibit?.characterImageCredit ?? MOON_ART_CREDIT}</p>
+        {exhibit?.imageWarning && <p className="mt-2 rounded-lg border border-amber-200/25 bg-amber-200/[.07] p-2 text-xs font-semibold leading-relaxed text-amber-100">{exhibit.imageWarning}</p>}
       </div>
       <div className="moon-credit-record">
         <small>Audio</small>

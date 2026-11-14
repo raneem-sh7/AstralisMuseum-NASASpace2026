@@ -1,2 +1,3 @@
 - [Progress-safe gameplay checks](gameplay-verification.md) — normalize saved progress, preserve archives, guard walk sheets, and wait for Phaser readiness.
 - [Approved astronaut artwork](astronaut-art-direction.md) — retain the approved Koch/Glover identities and verify real alpha on generated walking sheets.
+- [Moon–Mars scope boundaries](museum-scope.md) — use Moon as Mars’s visual reference while preserving planet-specific content and existing game systems.

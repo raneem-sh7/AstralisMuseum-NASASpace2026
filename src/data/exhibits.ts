@@ -153,6 +153,7 @@ const MOON_EXHIBITS: Exhibit[] = [
     characterImage: alsepCharacterImage,
     characterImageAlt: "Temporary AI-generated ALSEP concept art supplied for ASTRALIS; not an authentic NASA photograph. Replace before release.",
     characterImageCredit: "Temporary AI-generated concept art supplied for ASTRALIS; not an authentic NASA photograph or engineering diagram. Replace with a NASA-verified stationary ALSEP depiction before release.",
+    imageWarning: "Temporary concept art: the wheels are not scientifically faithful to ALSEP's stationary experiment packages. Replace this image with a verified wheel-free ALSEP depiction before release.",
     story: [
       "Greetings, explorer. I am ALSEP, the Apollo Lunar Surface Experiments Package.",
       "I am a collection of scientific instruments, not a rover or a Surveyor lander.",

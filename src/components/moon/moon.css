@@ -266,17 +266,23 @@
 }
 @media (max-width: 767px) {
   .moon-stage { height: 100dvh; min-height: 620px; }
-  .moon-topbar { align-items: flex-start; padding: 13px 14px; }
+  .moon-topbar { align-items: center; gap: 6px; padding: 12px; }
+  .moon-brand { flex: 0 0 auto; gap: 7px; }
   .moon-brand-mark { width: 31px; height: 31px; }
-  .moon-brand-copy small { font-size: 8px; }
-  .moon-brand-copy strong { font-size: 10px; }
-  .moon-hud-actions { gap: 6px; }
-  .moon-hud-button { min-height: 38px; padding: 0 9px; gap: 6px; font-size: 10px; }
+  .moon-brand-copy small { font-size: 7px; letter-spacing: .08em; white-space: nowrap; }
+  .moon-brand-copy strong { margin-top: 2px; font-size: 9px; white-space: nowrap; }
+  .moon-hud-actions { flex: 0 0 auto; gap: 3px; }
+  .moon-hud-button { width: 32px; min-width: 32px; min-height: 34px; padding: 0 5px; gap: 0; justify-content: center; font-size: 10px; }
+  .moon-hud-button .moon-desktop-label { display: none !important; }
+  .moon-hud-button[aria-label^="Open passport"] { width: auto; min-width: 54px; padding: 0 5px; gap: 3px; white-space: nowrap; }
   .moon-hud-button .moon-count { font-size: 9px; }
-  .moon-o2 { gap: 6px; padding: 6px 0 6px 8px; }
-  .moon-o2-track { width: 30px; }
+  .moon-hud-button .moon-count { white-space: nowrap; }
+  .moon-o2 { gap: 4px; padding: 5px 3px 5px 6px; }
+  .moon-o2-track { display: none; }
   .moon-o2-info small { font-size: 7px; }
   .moon-o2-info strong { font-size: 10px; }
+  .moon-hud-actions .audio-settings-button { width: 32px !important; min-width: 32px; min-height: 34px; padding: 0 !important; gap: 0 !important; justify-content: center; font-size: 0 !important; line-height: 0 !important; }
+  .moon-hud-actions .audio-settings-button svg { display: block; }
   .moon-world-label { top: 77px; left: 17px; }
   .moon-world-label h1 { font-size: 28px; }
   .moon-world-label p { font-size: 9px; }

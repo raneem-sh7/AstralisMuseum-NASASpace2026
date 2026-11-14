@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import type { Exhibit } from "../../data/exhibits";
 import { MOON_EQUIPMENT_PHOTOS } from "../../data/moonAssets";
 import { MoonCharacterPortrait } from "./MoonCharacterPortrait";
@@ -19,6 +20,13 @@ type MoonDialogueProps = {
   onMemoryAnswer: (i: number) => void;
   onRetryMemory: () => void;
   onNextStory: () => void;
+  credits?: ReactNode;
+  photoInfo?: {
+    localImage: string;
+    nasaId: string;
+    credit: string;
+    caption: string;
+  };
 };
 
 function ArrowIcon() {
@@ -48,7 +56,7 @@ function Answers({
 
 export function MoonDialogue({
   phase, exhibit, oxygen, storyIndex, memoryIndex, hookAnswer, memoryAnswer,
-  onClose, onAction, onHookAnswer, onMemoryAnswer, onRetryMemory, onNextStory,
+  onClose, onAction, onHookAnswer, onMemoryAnswer, onRetryMemory, onNextStory, credits, photoInfo,
 }: MoonDialogueProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -92,10 +100,12 @@ export function MoonDialogue({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [phase, exhibit.id]);
-  const photo = MOON_EQUIPMENT_PHOTOS[exhibit.id];
+  const photo = photoInfo ?? MOON_EQUIPMENT_PHOTOS[exhibit.id];
   const currentMemory = exhibit.memory[memoryIndex];
   const story = exhibit.story[storyIndex];
   const isMoon = exhibit.planet === "Moon";
+  const characterImage = exhibit.characterImage ?? (exhibit.planet === "Mars" ? exhibit.referenceImage : undefined);
+  const characterImageAlt = exhibit.characterImageAlt ?? exhibit.referenceImageAlt ?? `${exhibit.name} NASA reference photograph`;
   const heading = phase === "inspect" ? exhibit.name
     : phase === "hook" ? "A small question, first."
       : phase === "story" ? (exhibit.galleryName ?? exhibit.name)
@@ -113,8 +123,8 @@ export function MoonDialogue({
       <div className="moon-dialogue-content">
         <div className="moon-dialogue-grid">
           <div className="moon-character-panel">
-            {exhibit.characterImage
-              ? <img className={`moon-character-reference${phase === "story" ? " is-speaking" : ""}`} src={exhibit.characterImage} alt={exhibit.characterImageAlt ?? `${exhibit.name} character illustration`} />
+            {characterImage
+              ? <img className={`moon-character-reference${phase === "story" ? " is-speaking" : ""}`} src={phase === "story" ? (exhibit.characterTalkImage ?? characterImage) : characterImage} alt={characterImageAlt} />
               : <MoonCharacterPortrait exhibitId={exhibit.id} size={270} speaking={phase === "story"} />}
           </div>
           <div className="moon-dialogue-copy">
@@ -124,6 +134,7 @@ export function MoonDialogue({
             {phase === "inspect" && <>
               <p className="moon-dialogue-intro">{exhibit.intro}</p>
               <p className="moon-dialogue-intro">Location: {exhibit.location}. {exhibit.personality}.</p>
+              {exhibit.imageWarning && <div className="moon-explanation" role="note"><strong>Temporary art · replace before release.</strong> {exhibit.imageWarning}</div>}
             </>}
             {phase === "hook" && <>
               <p className="moon-dialogue-intro">{exhibit.hook.prompt}</p>
@@ -146,7 +157,7 @@ export function MoonDialogue({
                 {memoryAnswer !== currentMemory.answer && <button type="button" className="moon-action secondary" style={{ marginTop: 12, minHeight: 38 }} onClick={onRetryMemory}>Try this memory again</button>}
               </div>}
             </>}
-            {phase === "stamp" && <div className="moon-stamp-mark" aria-label={`${exhibit.name} Moon passport stamp`}>MOON<br />MEMORY<br />RESTORED</div>}
+            {phase === "stamp" && <div className="moon-stamp-mark" aria-label={`${exhibit.name} ${exhibit.planet} passport stamp`}>{exhibit.planet.toUpperCase()}<br />MEMORY<br />RESTORED</div>}
           </div>
         </div>
         {phase === "inspect" && photo && <div className="moon-source-context">
@@ -154,9 +165,9 @@ export function MoonDialogue({
           <p className="moon-photo-caption">NASA PHOTO / {photo.nasaId.toUpperCase()} · {photo.credit}</p>
           <p>{photo.caption}</p>
         </div>}
-        {isMoon && <details className="moon-credits-disclosure">
+        {(isMoon || credits) && <details className="moon-credits-disclosure">
           <summary>Sources &amp; credits <span aria-hidden="true">+</span></summary>
-          <MoonCredits exhibit={exhibit} />
+          {credits ?? <MoonCredits exhibit={exhibit} />}
         </details>}
         {phase === "stamp" && <div className="moon-memory-review">
           <h3>Memory answers &amp; explanations</h3>
@@ -170,7 +181,7 @@ export function MoonDialogue({
           {phase === "inspect" && <button type="button" className="moon-action" onClick={onAction}>Meet {exhibit.galleryName ?? exhibit.name.split(" ")[0]} <ArrowIcon /></button>}
           {phase === "hook" && <button type="button" className="moon-action" disabled={hookAnswer === null} onClick={onAction}>Continue to the story <ArrowIcon /></button>}
           {phase === "story" && <button type="button" className="moon-action" onClick={onNextStory}>{storyIndex + 1 === exhibit.story.length ? "Restore memories" : "Next line"} <ArrowIcon /></button>}
-          {phase === "stamp" && <button type="button" className="moon-action" onClick={onAction}>Return to the lunar surface <ArrowIcon /></button>}
+          {phase === "stamp" && <button type="button" className="moon-action" onClick={onAction}>Return to the {exhibit.planet === "Moon" ? "lunar surface" : "Martian surface"} <ArrowIcon /></button>}
         </div>
       </div>
     </article>

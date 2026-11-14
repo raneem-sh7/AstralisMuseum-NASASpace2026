@@ -21,23 +21,20 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
   const nearbyRef = useRef(onNearby);
   const interactRef = useRef(onInteract);
   const [ready, setReady] = useState(false);
-  const [moonViewport, setMoonViewport] = useState<{ width: number; height: number } | null>(null);
+  const [sceneViewport, setSceneViewport] = useState<{ width: number; height: number } | null>(null);
   nearbyRef.current = onNearby;
   interactRef.current = onInteract;
   const completedKey = completed.join(",");
-  const viewport = planet === "Mars" ? { width: 1000, height: 620 } : moonViewport;
+  const viewport = sceneViewport;
 
   useLayoutEffect(() => {
-    if (planet !== "Moon" || !parentRef.current) {
-      setMoonViewport(null);
-      return;
-    }
+    if (!parentRef.current) return;
     const resize = () => {
       const bounds = parentRef.current?.getBoundingClientRect();
       if (!bounds || bounds.width <= 0 || bounds.height <= 0) return;
       const width = bounds.width < 768 ? 620 : 1000;
       const height = Math.max(360, Math.round(width * bounds.height / bounds.width));
-      setMoonViewport(current => current?.width === width && current.height === height ? current : { width, height });
+      setSceneViewport(current => current?.width === width && current.height === height ? current : { width, height });
     };
     resize();
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;

@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import Phaser from "phaser";
-import { MuseumScene } from "./MuseumScene";
 import type { MuseumSceneController } from "./MuseumScene";
 import { MoonScene } from "./MoonScene";
+import { MarsScene } from "./MarsScene";
 import { getAstronaut } from "../data/astronauts";
 
 type Props = {
@@ -52,7 +52,7 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
   useEffect(() => {
     if (!mountRef.current || !viewport) return;
     setReady(false);
-    const scene = planet === "Moon" ? new MoonScene() : new MuseumScene();
+    const scene = planet === "Moon" ? new MoonScene() : new MarsScene();
     scene.configure({
       planet, astronaut, completed: completedKey ? completedKey.split(",") : [],
       onNearby: (id) => nearbyRef.current(id),
@@ -80,6 +80,6 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
 
   return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game as ${getAstronaut(astronaut).name}`} role="img" aria-busy={!ready} data-ready={ready} data-astronaut={getAstronaut(astronaut).id}>
     <div ref={mountRef} className="phaser-mount" />
-    {!ready && planet === "Moon" && <div className="canvas-loading" role="status">Preparing lunar field instruments…</div>}
+    {!ready && <div className="canvas-loading" role="status">Preparing {planet === "Moon" ? "lunar field instruments" : "Mars field archive"}…</div>}
   </div>;
 }

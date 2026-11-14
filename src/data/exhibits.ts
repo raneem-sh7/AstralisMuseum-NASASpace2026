@@ -1,3 +1,5 @@
+import { MARS_EXHIBITS } from "./marsExhibits";
+
 export type OptionQuestion = {
   prompt: string;
   options: string[];
@@ -27,6 +29,11 @@ export type Exhibit = {
   characterImage?: string;
   characterImageAlt?: string;
   characterImageCredit?: string;
+  characterTalkImage?: string;
+  referenceImage?: string;
+  referenceImageAlt?: string;
+  referenceImageCredit?: string;
+  referenceImageSource?: string;
   imageWarning?: string;
 };
 
@@ -39,7 +46,7 @@ export const EXHIBIT_ID_ALIASES: Record<string, string> = {
   "surveyor-3": "apollo-11-eagle"
 };
 
-export const EXHIBITS: Exhibit[] = [
+const MOON_EXHIBITS: Exhibit[] = [
   {
     id: "apollo-11-eagle",
     name: "Apollo 11 Eagle Lunar Module",
@@ -172,49 +179,6 @@ export const EXHIBITS: Exhibit[] = [
       { label: "NASA — Apollo 17 Mission Details", url: "https://www.nasa.gov/missions/apollo/apollo-17-mission-details/" }
     ]
   },
-  {
-    id: "sojourner", name: "Sojourner", planet: "Mars", mission: "Mars Pathfinder", dates: "Landed July 4, 1997", location: "Ares Vallis, Mars", objective: "Demonstrate a small mobile rover and investigate rocks and soil near the Pathfinder lander.", contribution: "Became the first rover to operate on Mars and examined nearby rocks and soil.", ending: "The Pathfinder mission ended after communication with the lander was lost.", personality: "Small, brave, and endlessly curious", color: 0xffb27e, symbol: "S", intro: "A small Mars rover that explored near the Pathfinder lander. This is DEMO CONTENT awaiting team research.", story: [
-      "I am Sojourner, the small rover that traveled with the Mars Pathfinder mission.",
-      "My spacecraft landed on Mars in July 1997, at a place called Ares Vallis.",
-      "I rolled out from the lander to investigate nearby rocks and soil.",
-      "My mobility experiment showed how a compact rover could move across another world.",
-      "I sent observations through the lander, which relayed information back to Earth.",
-      "When communication with Pathfinder was lost, my mission came to an end.",
-      "I was small, but my journey helped open the way for later Mars rovers."
-    ], hook: { prompt: "Sojourner explored which world?", options: ["Mars", "The Moon", "Venus", "Europa"], answer: 0, explanation: "Sojourner was the rover of NASA's Mars Pathfinder mission." }, memory: [
-      { prompt: "Which mission carried Sojourner to Mars?", options: ["Mars Pathfinder", "Apollo 15", "Surveyor 3", "Mars 2020"], answer: 0, explanation: "Sojourner traveled to Mars aboard the Pathfinder mission." },
-      { prompt: "Where did Pathfinder land?", options: ["Ares Vallis", "Hadley–Apennine", "Oceanus Procellarum", "Jezero Crater"], answer: 0, explanation: "Pathfinder and Sojourner landed at Ares Vallis." },
-      { prompt: "What did Sojourner investigate nearby?", options: ["Martian rocks and soil", "Lunar ice beneath the poles", "Saturn's rings", "Earth's ocean floor"], answer: 0, explanation: "Sojourner examined rocks and soil near the Pathfinder lander." }
-    ], sources: [{ label: "NASA — Mars Pathfinder", url: "https://science.nasa.gov/mission/mars-pathfinder/" }, { label: "NASA — Sojourner Rover", url: "https://mars.nasa.gov/MPF/rover/sojourner.html" }]
-  },
-  {
-    id: "spirit", name: "Spirit", planet: "Mars", mission: "Mars Exploration Rover mission", dates: "Landed January 4, 2004", location: "Gusev Crater, Mars", objective: "Search for evidence about past water activity and study Martian geology.", contribution: "Explored Gusev Crater and examined rocks and soils for clues about Mars's history.", ending: "Spirit became stuck in soft soil; NASA ended attempts to regain contact in 2011.", personality: "Determined, observant, and quietly optimistic", color: 0xf7a982, symbol: "S", intro: "One of the twin Mars Exploration Rovers, sent to investigate the Red Planet. This is DEMO CONTENT awaiting team research.", story: [
-      "I am Spirit, one of NASA's twin Mars Exploration Rovers.",
-      "I landed in Gusev Crater in January 2004, ready to investigate the rocks and soil.",
-      "My mission looked for clues that could help scientists understand past water activity on Mars.",
-      "I explored the crater and later climbed a nearby hill, sending observations home.",
-      "A rover's cameras and instruments turn distant landscapes into evidence scientists can study.",
-      "Soft soil eventually left me unable to drive. NASA's attempts to regain contact ended in 2011.",
-      "My route across Gusev remains a trail of questions and discoveries for future explorers."
-    ], hook: { prompt: "Spirit was part of which NASA mission?", options: ["Mars Exploration Rover mission", "Apollo program", "Surveyor program", "Viking 1 only"], answer: 0, explanation: "Spirit and Opportunity were NASA's Mars Exploration Rovers." }, memory: [
-      { prompt: "In which Martian crater did Spirit land?", options: ["Gusev Crater", "Jezero Crater", "Gale Crater", "Endeavour Crater"], answer: 0, explanation: "Spirit landed in Gusev Crater in January 2004." },
-      { prompt: "What kind of clues did Spirit help scientists investigate?", options: ["Evidence related to past water activity", "Signals from Earth's oceans", "The age of Saturn's rings", "The Moon's volcanic ash only"], answer: 0, explanation: "Spirit's mission investigated Martian geology and evidence of past water." },
-      { prompt: "What eventually prevented Spirit from continuing to drive?", options: ["It became stuck in soft soil", "It was collected by astronauts", "It ran out of wheels at launch", "It landed in the ocean"], answer: 0, explanation: "Spirit became stuck in soft soil and could not move free." }
-    ], sources: [{ label: "NASA — Spirit Rover", url: "https://science.nasa.gov/mission/mer-spirit/" }, { label: "NASA — Spirit's Final Communication", url: "https://www.nasa.gov/news-release/nasa-concludes-attempts-to-contact-mars-rover-spirit/" }]
-  },
-  {
-    id: "opportunity", name: "Opportunity", planet: "Mars", mission: "Mars Exploration Rover mission", dates: "Landed January 25, 2004", location: "Meridiani Planum, Mars", objective: "Study Martian rocks and soil for clues about the planet's environmental history.", contribution: "Examined rocks and soil that provided evidence of past water-related environments.", ending: "A planet-wide dust storm obscured sunlight; NASA concluded the mission in 2019 after contact was lost.", personality: "Bright, resilient, and wonderfully persistent", color: 0xffcc82, symbol: "O", intro: "Spirit's twin rover, built to explore Mars from the ground. This is DEMO CONTENT awaiting team research.", story: [
-      "I am Opportunity, Spirit's twin and a Mars rover with a long road behind me.",
-      "I landed on Meridiani Planum in January 2004 to study rocks and soil.",
-      "My instruments examined the landscape for clues about how Mars had changed over time.",
-      "The rocks I investigated provided evidence of past water-related environments.",
-      "I kept working through many seasons, sending images and measurements back to Earth.",
-      "A planet-wide dust storm blocked sunlight. After contact was lost, NASA concluded my mission in 2019.",
-      "My journey showed how patient robotic explorers can help us read another world's history."
-    ], hook: { prompt: "What did Opportunity investigate on Mars?", options: ["Rocks and soil for clues about Mars's history", "The Moon's south pole", "Earth's atmosphere from orbit", "The rings of Jupiter"], answer: 0, explanation: "Opportunity studied Martian rocks and soil to learn about the planet's past." }, memory: [
-      { prompt: "Where did Opportunity land?", options: ["Meridiani Planum", "Gusev Crater", "Ares Vallis", "Oceanus Procellarum"], answer: 0, explanation: "Opportunity landed on Meridiani Planum in January 2004." },
-      { prompt: "What did Opportunity's studied rocks provide evidence of?", options: ["Past water-related environments", "Recent forests on Mars", "A human settlement", "Active oceans today"], answer: 0, explanation: "The rocks provided evidence about water-related environments in Mars's past." },
-      { prompt: "What event preceded the end of Opportunity's mission?", options: ["A planet-wide dust storm blocked sunlight", "A lunar eclipse damaged its antenna", "It was brought to Earth", "A rover drove it into orbit"], answer: 0, explanation: "A dust storm obscured sunlight and Opportunity stopped communicating." }
-    ], sources: [{ label: "NASA — Opportunity Rover", url: "https://science.nasa.gov/mission/mer-opportunity/" }, { label: "NASA — Opportunity Mission Ends", url: "https://www.nasa.gov/news-release/nasas-opportunity-rover-mission-on-mars-comes-to-end/" }]
-  }
 ];
+
+export const EXHIBITS: Exhibit[] = [...MOON_EXHIBITS, ...MARS_EXHIBITS];

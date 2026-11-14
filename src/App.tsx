@@ -13,6 +13,7 @@ import { MoonDialogue } from "./components/moon/MoonDialogue";
 import { MoonGameShell } from "./components/moon/MoonGameShell";
 import { MoonCredits } from "./components/moon/MoonCredits";
 import { MoonCharacterPortrait } from "./components/moon/MoonCharacterPortrait";
+import { MarsDialogue } from "./components/mars/MarsDialogue";
 
 type Planet = "Moon" | "Mars";
 type Screen = "welcome" | "select" | "game" | "failed" | "legacy";
@@ -74,7 +75,7 @@ function HardwareArt({ exhibit, size = 112 }: { exhibit: Exhibit; size?: number 
   }
   if (exhibit.characterImage) {
     return <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40" style={{ width: size, height: size }} role="img" aria-label={exhibit.characterImageAlt ?? `AI-generated character illustration of ${exhibit.name}`}>
-      <img src={exhibit.characterImage} alt="" className="h-full w-full object-cover" />
+      <img src={exhibit.characterImage} alt="" className="h-full w-full object-contain p-1" />
       {exhibit.imageWarning && <span className="absolute inset-x-0 bottom-0 bg-rose-950/90 px-1 py-1 text-center font-mono text-[7px] font-bold leading-tight tracking-wide text-rose-100">TEMP ART · REPLACE</span>}
     </div>;
   }
@@ -143,6 +144,44 @@ function Stamp({ exhibit, done }: { exhibit?: Exhibit; done: boolean }) {
   </div>;
 }
 
+function LegacyWall({ onExploreAgain, onMainMenu }: { onExploreAgain: () => void; onMainMenu: () => void }) {
+  return <section className="legacy-finale relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-3 py-6 sm:px-5 sm:py-10">
+    <div className="legacy-deep-space" aria-hidden="true">
+      <img src="/images/welcome/tarantula-nebula.png" alt="" />
+      <div className="legacy-space-vignette" />
+      <div className="legacy-world-reveal">
+        <span className="legacy-world earth">EARTH</span>
+        <span className="legacy-world moon">MOON</span>
+        <span className="legacy-world mars">MARS</span>
+      </div>
+    </div>
+    <div className="legacy-scene legacy-cinematic screen-in w-full max-w-6xl">
+      <div className="legacy-title">
+        <span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span>
+        <h1 className="display mt-3 text-4xl font-bold sm:text-6xl">THE LEGACY WALL</h1>
+        <p className="legacy-subtitle">SIX MISSIONS. ONE LEGACY.</p>
+        <p className="legacy-catchline">“Their missions may have ended, but their discoveries live on.”</p>
+      </div>
+      <div className="legacy-wall mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+        {EXHIBITS.map((exhibit, index) => <article key={exhibit.id} className="legacy-item legacy-reveal" style={{ animationDelay: `${1.7 + index * .62}s` }}>
+          <div className={`legacy-light ${exhibit.planet.toLowerCase()}`} />
+          <div className="legacy-art"><HardwareArt exhibit={exhibit} size={112} /></div>
+          <span className="legacy-planet-label">{exhibit.planet} / {exhibit.mission}</span>
+          <h2 className="display text-sm font-bold sm:text-lg">{exhibit.galleryName ?? exhibit.name}</h2>
+          <p className="legacy-contribution">{exhibit.contribution}</p>
+          <div className="legacy-stamp-reveal" style={{ animationDelay: `${3.6 + index * .62}s` }}><Stamp exhibit={exhibit} done /></div>
+        </article>)}
+      </div>
+      <p className="legacy-image-credit">Deep-space background: Tarantula Nebula (NIRCam). NASA, ESA, CSA, STScI, Webb ERO Production Team. Color represents infrared data.</p>
+      <a className="legacy-source-link" href="https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/" target="_blank" rel="noreferrer">NASA image source ↗</a>
+      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+        <button onClick={onExploreAgain} className="btn-primary rounded-xl px-7 py-3.5 font-bold">EXPLORE AGAIN <Icon name="arrow" size={16} /></button>
+        <button onClick={onMainMenu} className="btn-secondary rounded-xl px-7 py-3.5 font-semibold">RETURN TO MAIN MENU</button>
+      </div>
+    </div>
+  </section>;
+}
+
 function Passport({ progress, close, onTravel }: { progress: Progress; close: () => void; onTravel: () => void }) {
   const moonComplete = EXHIBITS.filter(e => e.planet === "Moon").every(e => progress.stamps.includes(e.id));
   return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
@@ -199,12 +238,35 @@ function GameModal({ modal, exhibit, progress, storyIndex, memoryIndex, onClose,
       onNextStory={onNextStory}
     />;
   }
+  if ((modal === "inspect" || modal === "hook" || modal === "story" || modal === "memory" || modal === "stamp") && exhibit?.planet === "Mars") {
+    return <MarsDialogue
+      phase={modal}
+      exhibit={exhibit}
+      oxygen={progress.oxygen}
+      storyIndex={storyIndex}
+      memoryIndex={memoryIndex}
+      hookAnswer={hookAnswer}
+      memoryAnswer={memoryAnswer}
+      onClose={onClose}
+      onAction={onAction}
+      onHookAnswer={(answer) => {
+        setHookAnswer(answer);
+        audioManager.play(answer === exhibit.hook.answer ? "correct" : "incorrect");
+      }}
+      onMemoryAnswer={(answer) => {
+        setMemoryAnswer(answer === exhibit.memory[memoryIndex].answer ? null : answer);
+        onAnswer(answer);
+      }}
+      onRetryMemory={() => setMemoryAnswer(null)}
+      onNextStory={onNextStory}
+    />;
+  }
   if (modal === "how" || modal === "credits") return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
     <div className="exhibit-card screen-in max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-3xl p-6 sm:p-8" role="dialog" aria-modal="true">
       <div className="flex justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-200">{modal === "how" ? "FIELD GUIDE" : "CREDITS / SOURCES"}</span><button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-white"><Icon name="close" /></button></div>
       {modal === "how" ? <><h2 className="display mt-3 text-3xl font-bold">Explore at your own pace.</h2><div className="mt-5 grid gap-3 text-sm leading-relaxed text-slate-300">
         <p><b className="text-cyan-100">Move:</b> WASD or arrow keys. On touchscreens, use the directional pad.</p><p><b className="text-cyan-100">Inspect:</b> Walk near a display and press E, or tap Inspect.</p><p><b className="text-cyan-100">Restore:</b> Answer one curiosity question, listen to the story, then answer all three memory questions. Correct answers add 20 oxygen; wrong answers use 20. There is no timer.</p><p><b className="text-cyan-100">Travel:</b> Collect all three Moon stamps to open the Mars gallery. Check your passport at any time.</p>
-       </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon mission facts link to NASA references in each exhibit; character dialogue and personalities are creative storytelling, not quotations. Mars exhibits remain DEMO CONTENT awaiting team research. Character illustrations are artistic interpretations, not NASA photographs.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map((s, index) => <a key={`${s.url}-${index}`} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div><div className="mt-5 border-t border-white/10 pt-4"><MoonCredits /><p className="mt-4 text-xs leading-relaxed text-slate-400"><b className="text-slate-200">Welcome background:</b> Tarantula Nebula (NIRCam Image). NASA, ESA, CSA, STScI, Webb ERO Production Team. The supplied local image is 800 × 420; NASA's official asset page lists a 2000 × 1157 master. Its color is assigned to infrared data, not natural-color photography.</p><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/" target="_blank" rel="noreferrer">NASA Tarantula Nebula source page ↗</a><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/image-detail/stsci-01ga76rm0c11w977jrhgj5j26x-2/" target="_blank" rel="noreferrer">NASA image detail ↗</a></div></>}
+       </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon and Mars mission facts link to NASA references in each exhibit. First-person dialogue, personalities, and quiz questions are educational ASTRALIS content, not NASA quotations. Equipment characters are original game illustrations, not NASA photographs. Each NASA photo lists the credit shown on its NASA source page.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map((s, index) => <a key={`${s.url}-${index}`} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div><div className="mt-5 border-t border-white/10 pt-4"><MoonCredits /><p className="mt-4 text-xs leading-relaxed text-slate-400"><b className="text-slate-200">Welcome background:</b> Tarantula Nebula (NIRCam Image). NASA, ESA, CSA, STScI, Webb ERO Production Team. The supplied local image is 800 × 420; NASA's official asset page lists a 2000 × 1157 master. Its color is assigned to infrared data, not natural-color photography.</p><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/" target="_blank" rel="noreferrer">NASA Tarantula Nebula source page ↗</a><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/image-detail/stsci-01ga76rm0c11w977jrhgj5j26x-2/" target="_blank" rel="noreferrer">NASA image detail ↗</a></div></>}
       {modal === "credits" && <AstronautCredits />}
       <button className="btn-secondary mt-7 rounded-xl px-5 py-3 text-sm" onClick={onClose}>Back to the museum</button>
     </div>
@@ -293,8 +355,8 @@ export default function App() {
   }, [nearbyId, progress.planet]);
 
   useEffect(() => {
-    if (progress.planet !== "Moon") return;
     sceneRef.current?.setTalking?.(activeId, modal === "story");
+    if (progress.planet !== "Moon") return;
     if (modal === "story") audioManager.play("dialogue");
     if (modal === "stamp") audioManager.play("stamp");
   }, [activeId, modal, storyIndex, progress.planet]);
@@ -312,7 +374,7 @@ export default function App() {
   }, [joystick, modal, audioSettingsOpen, screen]);
 
   const continueGame = () => {
-    setScreen(progress.stamps.length === 6 ? "legacy" : "game");
+    setScreen(allDone ? "legacy" : "game");
     if (progress.stamps.length === 3 && progress.planet === "Moon") setModal("travel");
   };
   const confirmAstronaut = () => { setProgress(p => ({ ...emptyProgress(), astronaut: p.astronaut })); setScreen("game"); };
@@ -351,10 +413,9 @@ export default function App() {
   };
   const startStorySequence = () => { setStoryIndex(0); setModal("hook"); };
   const nextAfterStamp = () => {
-    const doneCount = progress.stamps.length;
     setActiveId(null);
     setNearbyId(null);
-    if (doneCount >= 6 || allDone) { setModal(null); setScreen("legacy"); return; }
+    if (allDone) { setModal(null); setScreen("legacy"); return; }
     if (allMoon && progress.planet === "Moon") { setModal("travel"); return; }
     setModal(null);
   };
@@ -413,13 +474,12 @@ export default function App() {
       </div>
     </section>}
 
-    {screen === "legacy" && <section className="relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-4 py-8">
-      <div className="legacy-scene screen-in w-full max-w-5xl"><div className="text-center"><span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span><h1 className="display mt-3 text-4xl font-bold sm:text-6xl">All Memories Restored!</h1><p className="mt-3 text-sm text-slate-400">Six journeys, held in one constellation.</p></div>
-        <div className="mx-auto mt-5 flex w-fit items-center gap-4 rounded-2xl border border-cyan-100/15 bg-cyan-100/5 px-5 py-2" data-astronaut={progress.astronaut}><img src={getAstronaut(progress.astronaut).idle} alt={`Your playable ${getAstronaut(progress.astronaut).name} character`} className="h-28 w-24 object-contain" /><div><p className="mono text-[9px] tracking-widest text-cyan-200">YOUR EXPLORER</p><h2 className="display mt-1 text-xl font-bold">{getAstronaut(progress.astronaut).name}</h2><p className="mt-1 text-xs text-slate-400">{getAstronaut(progress.astronaut).role}</p><p className="mt-2 text-[9px] text-slate-500">AI-generated game character · not a NASA photo</p></div></div>
-        <div className="legacy-wall mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">{EXHIBITS.map((e, i) => <article key={e.id} className="legacy-item" style={{ animationDelay: `${i * 180}ms` }}><div className="legacy-art"><HardwareArt exhibit={e} size={96} /></div><h2 className="display text-sm font-bold sm:text-base">{e.name}</h2><p className="legacy-contribution">{e.contribution}</p><span className="mono text-[8px] tracking-wider text-slate-600">{e.planet.toUpperCase()} / {e.planet === "Moon" ? "NASA SOURCES · AI ART" : "DEMO CONTENT"}</span></article>)}</div>
-        <p className="display mx-auto mt-8 max-w-xl text-center text-xl font-medium text-cyan-100 sm:text-2xl">“Their missions may have ended, but their discoveries live on.”</p>
-        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><button onClick={() => { setModal(null); setScreen("welcome"); }} className="btn-secondary rounded-xl px-6 py-3.5 font-semibold">Return to Main Menu</button><button onClick={newAdventure} className="btn-primary rounded-xl px-6 py-3.5 font-bold">Start a New Adventure <Icon name="arrow" size={16} /></button></div>
-      </div>
+    {screen === "legacy" && allDone && <LegacyWall
+      onExploreAgain={newAdventure}
+      onMainMenu={() => { setModal(null); setScreen("welcome"); }}
+    />}
+    {screen === "legacy" && !allDone && <section className="relative z-10 grid min-h-[100dvh] place-items-center p-5">
+      <div className="legacy-scene max-w-lg text-center"><h1 className="display text-3xl font-bold">The Legacy Wall is locked</h1><p className="mt-3 text-sm text-slate-300">Collect all six Moon and Mars passport stamps to open the final archive.</p><button onClick={() => setScreen("game")} className="btn-primary mt-5 rounded-xl px-5 py-3 font-bold">Return to the museum</button></div>
     </section>}
 
     {modal && <GameModal modal={modal} exhibit={exhibit} progress={progress} storyIndex={storyIndex} memoryIndex={memoryIndex} onClose={() => { setModal(null); if (modal === "inspect") setActiveId(null); }} onAction={() => {

@@ -55,6 +55,11 @@ export function MoonDialogue({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   useEffect(() => {
+    if (phase !== "inspect") {
+      dialogRef.current?.querySelectorAll<HTMLDetailsElement>(".moon-credits-disclosure").forEach(disclosure => {
+        disclosure.open = false;
+      });
+    }
     const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -108,7 +113,9 @@ export function MoonDialogue({
       <div className="moon-dialogue-content">
         <div className="moon-dialogue-grid">
           <div className="moon-character-panel">
-            <MoonCharacterPortrait exhibitId={exhibit.id} size={270} speaking={phase === "story"} />
+            {exhibit.characterImage
+              ? <img className={`moon-character-reference${phase === "story" ? " is-speaking" : ""}`} src={exhibit.characterImage} alt={exhibit.characterImageAlt ?? `${exhibit.name} character illustration`} />
+              : <MoonCharacterPortrait exhibitId={exhibit.id} size={270} speaking={phase === "story"} />}
           </div>
           <div className="moon-dialogue-copy">
             <StageLabel phase={phase === "inspect" ? "FIELD RECORD" : phase === "hook" ? "FIRST · CURIOSITY" : phase === "story" ? "CHARACTER STORY" : phase === "memory" ? `MEMORY RESTORATION / ${memoryIndex + 1} OF ${exhibit.memory.length} · O₂ ${oxygen}%` : "PASSPORT / RESTORED"} index={phase === "story" ? storyIndex : undefined} total={phase === "story" ? exhibit.story.length : undefined} />

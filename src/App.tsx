@@ -3,7 +3,14 @@ import type { PointerEvent, ReactNode } from "react";
 import { ASTRONAUTS, EXHIBITS, EXHIBIT_ID_ALIASES } from "./data/exhibits";
 import type { Exhibit } from "./data/exhibits";
 import MuseumCanvas from "./game/MuseumCanvas";
-import type { MuseumScene } from "./game/MuseumScene";
+import type { MuseumSceneController } from "./game/MuseumScene";
+import { audioManager } from "./audio/AudioManager";
+import AudioControls from "./components/AudioControls";
+import { WelcomeScreen } from "./components/WelcomeScreen";
+import { MoonDialogue } from "./components/moon/MoonDialogue";
+import { MoonGameShell } from "./components/moon/MoonGameShell";
+import { MoonCredits } from "./components/moon/MoonCredits";
+import { MoonCharacterPortrait } from "./components/moon/MoonCharacterPortrait";
 
 type Planet = "Moon" | "Mars";
 type Screen = "welcome" | "select" | "game" | "failed" | "legacy";
@@ -65,6 +72,11 @@ function Suit({ color, size = 96, name }: { color: string; size?: number; name?:
 }
 
 function HardwareArt({ exhibit, size = 112 }: { exhibit: Exhibit; size?: number }) {
+  if (exhibit.planet === "Moon") {
+    return <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40" style={{ width: size, height: size }} role="img" aria-label={exhibit.characterImageAlt ?? `AI-generated character illustration of ${exhibit.name}`}>
+      <MoonCharacterPortrait exhibitId={exhibit.id} size={size} />
+    </div>;
+  }
   if (exhibit.characterImage) {
     return <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40" style={{ width: size, height: size }} role="img" aria-label={exhibit.characterImageAlt ?? `AI-generated character illustration of ${exhibit.name}`}>
       <img src={exhibit.characterImage} alt="" className="h-full w-full object-cover" />
@@ -105,7 +117,7 @@ function MoonSourcesCredits({ exhibit }: { exhibit: Exhibit }) {
     <div className="mt-3">
       <p className="mono text-[8px] tracking-[.16em] text-slate-500">NASA-REFERENCED FACTS</p>
       <p className="mt-1 text-xs leading-relaxed text-slate-300">Mission facts are cross-checked against the linked NASA references. The character personality and first-person dialogue are creative storytelling, not quotations.</p>
-      <ul className="mt-2 space-y-1.5">{exhibit.sources.map((source) => <li key={source.url}>
+      <ul className="mt-2 space-y-1.5">{exhibit.sources.map((source, index) => <li key={`${source.url}-${index}`}>
         <a href={source.url} target="_blank" rel="noreferrer" className="text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{source.label} ↗</a>
       </li>)}</ul>
     </div>
@@ -169,12 +181,35 @@ function GameModal({ modal, exhibit, progress, storyIndex, memoryIndex, onClose,
   const [memoryAnswer, setMemoryAnswer] = useState<number | null>(null);
   useEffect(() => { setHookAnswer(null); setMemoryAnswer(null); }, [modal, exhibit?.id, memoryIndex]);
   if (!modal || modal === "passport") return modal === "passport" ? <Passport progress={progress} close={onClose} onTravel={onTravel} /> : null;
+  if ((modal === "inspect" || modal === "hook" || modal === "story" || modal === "memory" || modal === "stamp") && exhibit?.planet === "Moon") {
+    return <MoonDialogue
+      phase={modal}
+      exhibit={exhibit}
+      oxygen={progress.oxygen}
+      storyIndex={storyIndex}
+      memoryIndex={memoryIndex}
+      hookAnswer={hookAnswer}
+      memoryAnswer={memoryAnswer}
+      onClose={onClose}
+      onAction={onAction}
+      onHookAnswer={(answer) => {
+        setHookAnswer(answer);
+        audioManager.play(answer === exhibit.hook.answer ? "correct" : "incorrect");
+      }}
+      onMemoryAnswer={(answer) => {
+        setMemoryAnswer(answer === exhibit.memory[memoryIndex].answer ? null : answer);
+        onAnswer(answer);
+      }}
+      onRetryMemory={() => setMemoryAnswer(null)}
+      onNextStory={onNextStory}
+    />;
+  }
   if (modal === "how" || modal === "credits") return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
     <div className="exhibit-card screen-in w-full max-w-xl rounded-3xl p-6 sm:p-8" role="dialog" aria-modal="true">
       <div className="flex justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-200">{modal === "how" ? "FIELD GUIDE" : "CREDITS / SOURCES"}</span><button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-white"><Icon name="close" /></button></div>
       {modal === "how" ? <><h2 className="display mt-3 text-3xl font-bold">Explore at your own pace.</h2><div className="mt-5 grid gap-3 text-sm leading-relaxed text-slate-300">
         <p><b className="text-cyan-100">Move:</b> WASD or arrow keys. On touchscreens, use the directional pad.</p><p><b className="text-cyan-100">Inspect:</b> Walk near a display and press E, or tap Inspect.</p><p><b className="text-cyan-100">Restore:</b> Answer one curiosity question, listen to the story, then answer all three memory questions. Correct answers add 20 oxygen; wrong answers use 20. There is no timer.</p><p><b className="text-cyan-100">Travel:</b> Collect all three Moon stamps to open the Mars gallery. Check your passport at any time.</p>
-      </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon mission facts link to NASA references in each exhibit; character dialogue and personalities are creative storytelling, not quotations. Mars exhibits remain DEMO CONTENT awaiting team research. Character illustrations are artistic interpretations, not NASA photographs.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map(s => <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div></>}
+       </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon mission facts link to NASA references in each exhibit; character dialogue and personalities are creative storytelling, not quotations. Mars exhibits remain DEMO CONTENT awaiting team research. Character illustrations are artistic interpretations, not NASA photographs.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map((s, index) => <a key={`${s.url}-${index}`} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div><div className="mt-5 border-t border-white/10 pt-4"><MoonCredits /><p className="mt-4 text-xs leading-relaxed text-slate-400"><b className="text-slate-200">Welcome background:</b> Tarantula Nebula (NIRCam Image). NASA, ESA, CSA, STScI, Webb ERO Production Team. The supplied local image is 800 × 420; NASA's official asset page lists a 2000 × 1157 master. Its color is assigned to infrared data, not natural-color photography.</p><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/" target="_blank" rel="noreferrer">NASA Tarantula Nebula source page ↗</a><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/image-detail/stsci-01ga76rm0c11w977jrhgj5j26x-2/" target="_blank" rel="noreferrer">NASA image detail ↗</a></div></>}
       <button className="btn-secondary mt-7 rounded-xl px-5 py-3 text-sm" onClick={onClose}>Back to the museum</button>
     </div>
   </div>;
@@ -227,10 +262,46 @@ export default function App() {
   const [storyIndex, setStoryIndex] = useState(0);
   const [memoryIndex, setMemoryIndex] = useState(0);
   const [joystick, setJoystick] = useState({ x: 0, y: 0 });
-  const sceneRef = useRef<MuseumScene | null>(null);
+  const [audioSettingsOpen, setAudioSettingsOpen] = useState(false);
+  const sceneRef = useRef<MuseumSceneController | null>(null);
+  const onAudioSettingsOpenChange = useCallback((open: boolean) => setAudioSettingsOpen(open), []);
   const exhibit = useMemo(() => EXHIBITS.find(e => e.id === activeId) ?? null, [activeId]);
   const allMoon = EXHIBITS.filter(e => e.planet === "Moon").every(e => progress.stamps.includes(e.id));
   const allDone = EXHIBITS.every(e => progress.stamps.includes(e.id));
+  const nearbyName = useMemo(() => {
+    const found = EXHIBITS.find(item => item.id === nearbyId);
+    return found ? (found.galleryName ?? found.name) : null;
+  }, [nearbyId]);
+  const moonStampCount = progress.stamps.filter(id => EXHIBITS.some(item => item.id === id && item.planet === "Moon")).length;
+
+  useEffect(() => {
+    const unlock = () => { void audioManager.unlock(); };
+    document.addEventListener("pointerdown", unlock, { passive: true });
+    document.addEventListener("keydown", unlock);
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  useEffect(() => {
+    const exploringMoon = screen === "game" && progress.planet === "Moon";
+    audioManager.setExploring(exploringMoon);
+    if (exploringMoon) void audioManager.unlock().then(() => audioManager.play("arrival"));
+    return () => audioManager.setExploring(false);
+  }, [screen, progress.planet]);
+
+  useEffect(() => {
+    if (progress.planet !== "Moon") return;
+    if (nearbyId) audioManager.play("proximity");
+  }, [nearbyId, progress.planet]);
+
+  useEffect(() => {
+    if (progress.planet !== "Moon") return;
+    sceneRef.current?.setTalking?.(activeId, modal === "story");
+    if (modal === "story") audioManager.play("dialogue");
+    if (modal === "stamp") audioManager.play("stamp");
+  }, [activeId, modal, storyIndex, progress.planet]);
 
   useEffect(() => {
     if ((screen === "game" || screen === "legacy") && progress.astronaut && progress.oxygen > 0) {
@@ -241,8 +312,8 @@ export default function App() {
   useEffect(() => {
     if (!sceneRef.current) return;
     sceneRef.current.setJoystick(joystick.x, joystick.y);
-    sceneRef.current.setMovementEnabled(modal === null);
-  }, [joystick, modal, screen]);
+    sceneRef.current.setMovementEnabled(modal === null && !audioSettingsOpen);
+  }, [joystick, modal, audioSettingsOpen, screen]);
 
   const continueGame = () => {
     setScreen(progress.stamps.length === 6 ? "legacy" : "game");
@@ -252,9 +323,11 @@ export default function App() {
   const interact = useCallback((id: string) => {
     const target = EXHIBITS.find(e => e.id === id);
     if (!target || target.planet !== progress.planet || progress.stamps.includes(id)) return;
+    if (progress.planet === "Moon") audioManager.play("interaction");
     setActiveId(id); setModal("inspect");
   }, [progress.planet, progress.stamps]);
   const failMission = () => {
+    if (progress.planet === "Moon") audioManager.play("failure");
     try { localStorage.removeItem(SAVE_KEY); } catch { /* no-op */ }
     setHasSave(false); setProgress(emptyProgress()); setModal(null); setActiveId(null); setScreen("failed");
   };
@@ -262,6 +335,10 @@ export default function App() {
     if (!exhibit) return;
     const correct = index === exhibit.memory[memoryIndex].answer;
     const nextOxygen = Math.max(0, Math.min(100, progress.oxygen + (correct ? 20 : -20)));
+    if (exhibit.planet === "Moon") {
+      audioManager.play(correct ? "correct" : "incorrect");
+      if (progress.oxygen > 20 && nextOxygen <= 20 && nextOxygen > 0) audioManager.play("low-oxygen");
+    }
     if (nextOxygen === 0) { failMission(); return; }
     setProgress(p => ({ ...p, oxygen: nextOxygen }));
     if (correct) {
@@ -280,42 +357,24 @@ export default function App() {
   const nextAfterStamp = () => {
     const doneCount = progress.stamps.length;
     setActiveId(null);
+    setNearbyId(null);
     if (doneCount >= 6 || allDone) { setModal(null); setScreen("legacy"); return; }
     if (allMoon && progress.planet === "Moon") { setModal("travel"); return; }
     setModal(null);
   };
-  const travelMars = () => { setProgress(p => ({ ...p, planet: "Mars" })); setNearbyId(null); setJoystick({ x: 0, y: 0 }); setModal(null); };
+  const travelMars = () => { if (progress.planet === "Moon") audioManager.play("travel"); setProgress(p => ({ ...p, planet: "Mars" })); setNearbyId(null); setJoystick({ x: 0, y: 0 }); setModal(null); };
+  const reportNearby = useCallback((id: string | null) => setNearbyId(id), []);
   const newAdventure = () => { setProgress(emptyProgress()); setHasSave(false); setActiveId(null); setModal(null); setScreen("select"); try { localStorage.removeItem(SAVE_KEY); } catch { /* no-op */ } };
 
   return <main className="app-shell min-h-[100dvh] text-slate-100">
     <div className="stars" aria-hidden="true" />
-    {screen === "welcome" && <section className="relative z-10 flex min-h-[100dvh] flex-col px-5 py-6 sm:px-10 sm:py-8">
-      <header className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="brand-mark"><Icon name="star" size={17} /></span><span className="mono text-[10px] tracking-[.24em] text-slate-300">TEAM ASTRALIS <i className="mx-1 text-cyan-200">/</i> FIELD ARCHIVE</span></div><button onClick={() => setModal("credits")} className="btn-secondary rounded-full px-4 py-2 text-xs">Credits & sources</button></header>
-      <div className="welcome-grid mx-auto grid w-full max-w-6xl flex-1 items-center gap-8 py-12 lg:grid-cols-[1.05fr_.95fr]">
-        <div className="screen-in relative z-10">
-          <div className="mono inline-flex items-center gap-2 rounded-full border border-cyan-100/15 bg-cyan-100/[.05] px-3 py-2 text-[9px] tracking-[.18em] text-cyan-100/80"><span className="h-1.5 w-1.5 rounded-full bg-cyan-200 shadow-[0_0_12px_#7ce4f1]" /> AN INTERACTIVE SPACE MUSEUM</div>
-          <p className="mono mt-7 text-[10px] tracking-[.31em] text-slate-500">A JOURNEY THROUGH QUIET WORLDS</p>
-          <h1 className="display mt-1 text-[clamp(4rem,11vw,8.5rem)] font-bold leading-[.84] tracking-[-.085em] text-[#f1f6ff]">ASTRALIS<span className="text-cyan-200">.</span></h1>
-          <h2 className="display mt-6 max-w-xl text-2xl font-medium leading-tight text-slate-200 sm:text-3xl">The Museum of<br className="hidden sm:block" /> NASA's Silent Missions</h2>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-slate-400">Their missions may have ended,<br className="hidden sm:block" /> but their discoveries live on.</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button onClick={hasSave ? continueGame : () => setScreen("select")} className="btn-primary flex items-center justify-center gap-3 rounded-xl px-6 py-4 font-bold">{hasSave ? "Continue Exploring" : "Start Exploring"} <Icon name="arrow" /></button>
-            <button onClick={() => setModal("how")} className="btn-secondary rounded-xl px-6 py-4 font-semibold">How to play</button>
-          </div>
-          <p className="mt-7 max-w-lg text-[10px] leading-relaxed text-slate-500">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p>
-        </div>
-        <div className="hero-art relative mx-auto aspect-square w-full max-w-[490px]">
-          <div className="hero-halo" /><div className="hero-orbit orbit" /><div className="hero-planet"><div className="planet-crater crater-one" /><div className="planet-crater crater-two" /><div className="planet-crater crater-three" /></div>
-          <div className="hero-stars"><i /><i /><i /><i /><i /><i /></div>
-          <div className="astronaut-float float"><Suit color="#79dce9" size={160} /></div>
-          <div className="satellite float"><div className="satellite-core" /><span /><b /></div>
-          <div className="hero-caption mono"><span>MISSION ARCHIVE</span><strong>THE QUIET<br />WORLDS</strong><small>MOON / MARS · 06 EXHIBITS</small></div>
-          <div className="hero-coordinates mono">LUNAR GALLERY<br />00° 40′ N — 23° 28′ W</div>
-          <div className="hero-dot dot-a twinkle" /><div className="hero-dot dot-b twinkle" /><div className="hero-dot dot-c twinkle" />
-        </div>
-      </div>
-      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/[.08] pt-4 mono text-[9px] tracking-[.16em] text-slate-600"><span>INDEPENDENT EDUCATIONAL EXPERIENCE</span><span>MOON 01 — MARS 02</span><span>© TEAM ASTRALIS · 2026</span></footer>
-    </section>}
+    {screen === "welcome" && <WelcomeScreen
+      hasSave={hasSave}
+      onEnter={() => { audioManager.play("launch"); hasSave ? continueGame() : setScreen("select"); }}
+      onHowToPlay={() => setModal("how")}
+      onCredits={() => setModal("credits")}
+      audioControls={<AudioControls />}
+    />}
 
     {screen === "select" && <section className="relative z-10 flex min-h-[100dvh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-4xl screen-in"><div className="flex items-center justify-between"><button onClick={() => setScreen("welcome")} className="text-xs text-slate-400 hover:text-white">← Main menu</button><span className="mono text-[9px] tracking-[.2em] text-slate-500">01 / CHOOSE YOUR EXPLORER</span></div>
@@ -327,12 +386,28 @@ export default function App() {
 
     {screen === "failed" && <section className="relative z-10 flex min-h-[100dvh] items-center justify-center px-5 py-10"><div className="screen-in max-w-md text-center"><div className="failure-mark mx-auto grid h-24 w-24 place-items-center rounded-full"><span className="display text-4xl">0%</span></div><span className="mono mt-7 block text-[10px] tracking-[.24em] text-rose-200/80">EXPEDITION COMPLETE</span><h1 className="display mt-2 text-4xl font-bold">Mission Failed</h1><p className="mt-4 text-sm leading-relaxed text-slate-400">Oxygen depleted. The expedition has ended. Your passport and saved progress have been cleared. A fresh start is waiting back at astronaut selection.</p><button onClick={() => { setProgress(emptyProgress()); setScreen("select"); }} className="btn-primary mt-7 rounded-xl px-6 py-4 font-bold">Return to astronaut selection <Icon name="arrow" size={16} /></button></div></section>}
 
-    {screen === "game" && <section className="relative z-10 flex min-h-[100dvh] flex-col px-3 py-3 sm:px-6 sm:py-5">
+    {screen === "game" && progress.planet === "Moon" && <MoonGameShell
+      oxygen={progress.oxygen}
+      stampCount={progress.stamps.length}
+      moonStampCount={moonStampCount}
+      nearbyName={nearbyName}
+      onMenu={() => { setModal(null); setScreen("welcome"); }}
+      onPassport={() => setModal("passport")}
+      onGuide={() => setModal("how")}
+      onCredits={() => setModal("credits")}
+      onInteract={() => { if (nearbyId) interact(nearbyId); }}
+      audioControls={<AudioControls onOpenChange={onAudioSettingsOpenChange} />}
+      movementControls={<VirtualPad onMove={(x, y) => { setJoystick({ x, y }); sceneRef.current?.setJoystick(x, y); }} />}
+    >
+      <MuseumCanvas planet={progress.planet} astronaut={progress.astronaut} completed={progress.completed} onNearby={reportNearby} onInteract={interact} sceneRef={sceneRef} />
+    </MoonGameShell>}
+
+    {screen === "game" && progress.planet === "Mars" && <section className="relative z-10 flex min-h-[100dvh] flex-col px-3 py-3 sm:px-6 sm:py-5">
       <header className="game-header mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3"><button aria-label="Main menu" onClick={() => { setModal(null); setScreen("welcome"); }} className="brand-mark shrink-0"><Icon name="star" size={16} /></button><div className="min-w-0"><div className="mono truncate text-[9px] tracking-[.2em] text-slate-500">ASTRALIS / {progress.planet.toUpperCase()} ARCHIVE</div><h1 className="display truncate text-lg font-bold sm:text-xl">{progress.planet} Museum</h1></div></div>
         <div className="flex items-center gap-2 sm:gap-3"><div className="oxygen-pill"><span className="oxygen-icon">O₂</span><span className="mono text-sm">{progress.oxygen}%</span><span className="oxygen-meter"><i style={{ width: `${progress.oxygen}%` }} /></span></div><button className="btn-secondary passport-trigger flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold sm:px-4" onClick={() => setModal("passport")}><Icon name="passport" /><span className="hidden sm:inline">Passport</span><span className="passport-count">{progress.stamps.length}/6</span></button></div>
       </header>
-      <div className="mx-auto mt-3 flex w-full max-w-7xl flex-1 flex-col">
+          <div className="mx-auto mt-3 flex w-full max-w-7xl flex-1 flex-col">
         <div className="game-instructions flex items-center justify-between gap-2 pb-2"><p className="mono text-[9px] tracking-wider text-slate-500 sm:text-[10px]">WASD / ARROWS <span className="mx-1 text-cyan-200/60">·</span> E TO INSPECT</p><div className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /><span className="mono text-[9px] tracking-wider text-slate-500">{progress.stamps.length} / 6 MEMORIES RESTORED</span></div></div>
         <div className="game-frame relative mx-auto w-full max-w-[1000px] flex-1"><MuseumCanvas planet={progress.planet} astronaut={progress.astronaut} completed={progress.completed} onNearby={setNearbyId} onInteract={interact} sceneRef={sceneRef} />
           <div className="game-overlay-label mono"><span className="h-1.5 w-1.5 rounded-full bg-cyan-200" /> LIVE FIELD VIEW</div>

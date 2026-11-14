@@ -33,7 +33,7 @@ export function MoonGameShell({
   onMenu, onPassport, onGuide, onCredits, onInteract,
 }: MoonGameShellProps) {
   const oxygenValue = Math.max(0, Math.min(100, oxygen));
-  return <main className="moon-shell">
+  return <div className="moon-shell">
     <section className="moon-stage" aria-label="Moon exploration mission">
       <div className="moon-game-window">{children}</div>
       <header className="moon-topbar">
@@ -77,5 +77,5 @@ export function MoonGameShell({
         </div>
       </footer>
     </section>
-  </main>;
+  </div>;
 }

@@ -30,9 +30,9 @@ export type Exhibit = {
   imageWarning?: string;
 };
 
-const eagleCharacterImage = new URL("../../attached_assets/eagle_ai_character_1794658396088.jpg", import.meta.url).href;
-const lunarRoverCharacterImage = new URL("../../attached_assets/lrv_ai_character_1794658396088.jpg", import.meta.url).href;
-const alsepCharacterImage = new URL("../../attached_assets/alsep_ai_character_REPLACE_1794658396088.jpg", import.meta.url).href;
+const eagleCharacterImage = "/images/moon/eagle_ai_character.jpg";
+const lunarRoverCharacterImage = "/images/moon/lrv_ai_character.jpg";
+const alsepCharacterImage = "/images/moon/alsep_ai_character_REPLACE.jpg";
 
 export const EXHIBIT_ID_ALIASES: Record<string, string> = {
   // Preserve stamps saved under the previous Moon exhibit name.
@@ -56,8 +56,8 @@ export const EXHIBITS: Exhibit[] = [
     galleryName: "Apollo 11 Eagle",
     intro: "The Apollo 11 Lunar Module that carried Armstrong and Aldrin to the Sea of Tranquility. Its descent stage—not the whole Eagle—remained at the landing site.",
     characterImage: eagleCharacterImage,
-    characterImageAlt: "AI-generated artistic interpretation of the Apollo 11 Eagle Lunar Module; not an authentic NASA photograph.",
-    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
+    characterImageAlt: "AI-generated artistic interpretation of the Apollo 11 Eagle Lunar Module supplied for ASTRALIS; not an authentic NASA photograph.",
+    characterImageCredit: "AI-generated character image supplied for ASTRALIS; not an authentic NASA photograph or NASA engineering diagram.",
     story: [
       "Hello, explorer. I am Eagle, the Lunar Module flown on Apollo 11.",
       "On July 20, 1969, I brought Neil Armstrong and Buzz Aldrin down to the Sea of Tranquility.",
@@ -99,8 +99,8 @@ export const EXHIBITS: Exhibit[] = [
     galleryName: "Lunar Roving Vehicle",
     intro: "A battery-powered lunar vehicle. Three separate LRVs were driven on the Moon—one each on Apollo 15, 16, and 17.",
     characterImage: lunarRoverCharacterImage,
-    characterImageAlt: "AI-generated artistic interpretation of an Apollo Lunar Roving Vehicle; not an authentic NASA photograph.",
-    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
+    characterImageAlt: "AI-generated artistic interpretation of an Apollo Lunar Roving Vehicle supplied for ASTRALIS; not an authentic NASA photograph.",
+    characterImageCredit: "AI-generated character image supplied for ASTRALIS; not an authentic NASA photograph or NASA engineering diagram.",
     story: [
       "Hey, explorer. I am the Lunar Roving Vehicle, or LRV.",
       "Apollo crews did not share one rover: a separate LRV flew on each of Apollo 15, 16, and 17.",
@@ -142,11 +142,10 @@ export const EXHIBITS: Exhibit[] = [
     color: 0xc5a6ff,
     symbol: "A",
     galleryName: "ALSEP Science Package",
-    intro: "ALSEP was a family of Apollo science instruments—not a rover and not a Surveyor lander. The mapped concept image is temporary and scientifically inaccurate.",
+    intro: "ALSEP was a family of stationary Apollo science instruments—not a rover and not a Surveyor lander.",
     characterImage: alsepCharacterImage,
-    characterImageAlt: "Temporary AI-generated artistic interpretation of an ALSEP package; it incorrectly depicts wheels and is not an authentic NASA photograph.",
-    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
-    imageWarning: "TEMPORARY CONCEPT ART — this illustration shows wheels and is not scientifically faithful to ALSEP. Replace it before release.",
+    characterImageAlt: "Temporary AI-generated ALSEP concept art supplied for ASTRALIS; not an authentic NASA photograph. Replace before release.",
+    characterImageCredit: "Temporary AI-generated concept art supplied for ASTRALIS; not an authentic NASA photograph or engineering diagram. Replace with a NASA-verified stationary ALSEP depiction before release.",
     story: [
       "Greetings, explorer. I am ALSEP, the Apollo Lunar Surface Experiments Package.",
       "I am a collection of scientific instruments, not a rover or a Surveyor lander.",

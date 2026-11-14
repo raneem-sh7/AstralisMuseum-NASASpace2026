@@ -115,6 +115,7 @@ export class MoonScene extends Phaser.Scene {
       this.opts.onNearby(null);
     });
     if (this.loadFailures.length) this.loadWarning(`Some locally stored mission images could not be loaded: ${this.loadFailures.join(", ")}`);
+    this.opts.onReady?.();
   }
 
   private drawTerrainAtmosphere() {

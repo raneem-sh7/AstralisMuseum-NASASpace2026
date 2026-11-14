@@ -69,6 +69,6 @@ export const MOON_CHARACTER_ART: Record<string, {
   "alsep": { image: "/images/moon/alsep-character.svg", face: { x: .46, y: .625, width: .16, height: .11 } }
 };
 
-export const MOON_ART_CREDIT = "AI-generated vector character illustrations created for ASTRALIS with QuiverAI, inspired by the supplied concept images. Animated faces are original game graphics. Artistic interpretations, not NASA photographs or engineering diagrams. Eagle depicts a descent-stage-inspired character; ALSEP is stationary and has no wheels.";
+export const MOON_ART_CREDIT = "The supplied Eagle, LRV, and ALSEP character images are AI-generated interpretations for ASTRALIS, not NASA photographs. The animated vector mascots are original game graphics, not engineering diagrams. The ALSEP concept image is temporary and should be replaced with a NASA-verified stationary-instrument depiction before public release.";
 export const MOON_AUDIO_CREDIT = "Original, code-synthesized ambient score and stylized suit, radio and interface effects created for ASTRALIS using Web Audio. No NASA recordings or third-party audio samples are used. The Moon has no atmosphere to carry ordinary outdoor sound.";
 export const MOON_WORLD_NOTE = "Educational composite: these characters represent different Apollo landing sites. Their placement is not a map of one real site.";

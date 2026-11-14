@@ -20,3 +20,9 @@ For key-driven Phaser gameplay tests, wait until scene asset preloading and scen
 **Why:** The React game screen can appear before Phaser has registered its keyboard handlers; an early key press can be dropped and send a test toward the wrong display.
 
 **How to apply:** Use a scene-ready signal or a checked readiness condition before simulating input; don't infer Phaser readiness from the React header or canvas element alone.
+
+When integrating a Phaser scene with React, signal readiness from the scene's `create()` lifecycle after its systems and input handlers are available. Don't read `scene.events` before Phaser has booted the scene.
+
+**Why:** A pre-boot readiness listener can access an undefined event emitter and crash the React canvas mount.
+
+**How to apply:** Pass a readiness callback into scene configuration, invoke it at the end of `create()`, and have interactive tests wait for that signal before sending keys.

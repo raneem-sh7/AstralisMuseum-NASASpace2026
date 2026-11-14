@@ -7,6 +7,7 @@ export type SceneOptions = {
   completed: string[];
   onNearby: (id: string | null) => void;
   onInteract: (id: string) => void;
+  onReady?: () => void;
 };
 
 export type MuseumSceneController = {
@@ -110,6 +111,7 @@ export class MuseumScene extends Phaser.Scene {
       this.input.keyboard.on("keydown-E", () => this.interact());
     }
     this.events.on("shutdown", () => { this.onNearbyCallback(null); });
+    this.opts.onReady?.();
   }
 
   private drawExhibit(x: number, y: number, name: string, tint: number, symbol: string, finished: boolean, mars: boolean, hasCharacterImage: boolean, temporaryArt: boolean) {

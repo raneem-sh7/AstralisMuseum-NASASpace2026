@@ -55,9 +55,9 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
     scene.configure({
       planet, astronaut, completed: completedKey ? completedKey.split(",") : [],
       onNearby: (id) => nearbyRef.current(id),
-      onInteract: (id) => interactRef.current(id)
+      onInteract: (id) => interactRef.current(id),
+      onReady: () => setReady(true)
     });
-    scene.events.once("create", () => setReady(true));
     const game = new Phaser.Game({
       type: Phaser.CANVAS,
       parent: mountRef.current,
@@ -79,6 +79,6 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
 
   return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game`} role="img" aria-busy={!ready} data-ready={ready}>
     <div ref={mountRef} className="phaser-mount" />
-    {!ready && <div className="canvas-loading" role="status">{planet === "Moon" ? "Preparing lunar field instruments…" : "Entering museum…"}</div>}
+    {!ready && planet === "Moon" && <div className="canvas-loading" role="status">Preparing lunar field instruments…</div>}
   </div>;
 }

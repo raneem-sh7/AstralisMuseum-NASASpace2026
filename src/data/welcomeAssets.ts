@@ -1,6 +1,4 @@
-import tarantulaNebula from "../../public/images/welcome/tarantula-nebula.png";
-
-export const TARANTULA_NEBULA_IMAGE = tarantulaNebula;
+export const TARANTULA_NEBULA_IMAGE = "/images/welcome/tarantula-nebula.png";
 export const TARANTULA_NEBULA_CREDIT = "NASA, ESA, CSA, STScI, Webb ERO Production Team";
 export const TARANTULA_NEBULA_TITLE = "Tarantula Nebula (NIRCam Image)";
 export const TARANTULA_NEBULA_SOURCE = "https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/";

@@ -24,13 +24,12 @@ export function WelcomeScreen({
   audioControls,
 }: WelcomeScreenProps) {
   return (
-    <main className="astralis-welcome" aria-labelledby="astralis-welcome-title">
+    <section className="astralis-welcome" aria-labelledby="astralis-welcome-title">
       <img
         className="astralis-welcome__image"
         src={TARANTULA_NEBULA_IMAGE}
         alt=""
         aria-hidden="true"
-        fetchPriority="high"
       />
       <div className="astralis-welcome__shade" aria-hidden="true" />
 
@@ -114,6 +113,6 @@ export function WelcomeScreen({
         {TARANTULA_NEBULA_CREDIT}
         <span className="astralis-welcome__science-note">{TARANTULA_NEBULA_NOTE}</span>
       </p>
-    </main>
+    </section>
   );
 }

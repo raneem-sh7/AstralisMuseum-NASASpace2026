@@ -23,7 +23,7 @@ export function MoonCredits({ exhibit }: MoonCreditsProps) {
       <div className="moon-credit-record">
         <small>Mission facts</small>
         <p>Mission references support verified facts. First-person character dialogue and personalities are Team Astralis educational storytelling, not quotations.</p>
-        {scientificExhibits.flatMap(item => item.sources).map(source => <p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a></p>)}
+        {scientificExhibits.flatMap(item => item.sources).map((source, index) => <p key={`${source.url}-${index}`}><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a></p>)}
       </div>
       <div className="moon-credit-record">
         <small>NASA environmental photograph</small>

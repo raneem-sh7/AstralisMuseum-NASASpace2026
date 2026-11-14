@@ -91,6 +91,12 @@
 }
 .moon-game-window > * { width: 100%; height: 100%; }
 .moon-game-window .game-canvas { border-radius: 0; }
+.moon-game-window .canvas-loading {
+  position: absolute; z-index: 2; inset: 0; display: grid; place-items: center;
+  padding: 24px; color: #d4e9e2; background: rgba(21,31,30,.92);
+  font: 10px 'DM Mono',monospace; letter-spacing: .14em; text-transform: uppercase;
+  pointer-events: none;
+}
 .moon-game-window canvas { border-radius: 0 !important; }
 .moon-footer {
   position: absolute; z-index: 4; inset: auto 0 0; display: flex;
@@ -176,6 +182,12 @@
   border-radius: 16px; background: radial-gradient(ellipse,rgba(178,220,206,.17),rgba(137,173,162,.035) 58%,transparent 75%);
 }
 .moon-character-panel .moon-portrait { width: min(100%, 290px); height: 265px; }
+.moon-character-reference {
+  display: block; width: min(100%, 290px); height: 265px; object-fit: cover;
+  border: 1px solid rgba(237,243,230,.17); border-radius: 16px;
+  box-shadow: 0 18px 44px rgba(0,0,0,.26); animation: moon-character-idle 5s ease-in-out infinite;
+}
+.moon-character-reference.is-speaking { animation: moon-character-speaking 1.8s ease-in-out infinite; }
 .moon-dialogue-copy { min-width: 0; }
 .moon-quote {
   margin: 17px 0 0; color: #edf1e9; font: 500 clamp(19px,2.4vw,25px)/1.48 'Fraunces', serif;
@@ -247,6 +259,8 @@
 @keyframes moon-arrive { from { opacity: 0; transform: translate(-50%,8px) } to { opacity: 1; transform: translate(-50%,0) } }
 @keyframes moon-blink { 0%,46%,50%,100% { transform: scaleY(1) } 48% { transform: scaleY(.12) } }
 @keyframes moon-talk { from { height: 8%; border-radius: 0 0 70% 70% } to { height: 30%; border-radius: 45% } }
+@keyframes moon-character-idle { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+@keyframes moon-character-speaking { 0%,100% { transform: translateY(0) scale(1) } 50% { transform: translateY(-3px) scale(1.012) } }
 @media (min-width: 1000px) and (min-height: 700px) {
   .moon-stage { height: 100dvh; }
 }
@@ -286,6 +300,7 @@
   .moon-dialogue-grid { grid-template-columns: 1fr; gap: 4px; }
   .moon-character-panel { min-height: 160px; }
   .moon-character-panel .moon-portrait { width: 190px; height: 165px; }
+  .moon-character-reference { width: 165px; height: 165px; object-fit: contain; }
   .moon-dialogue-copy { padding-top: 5px; }
   .moon-dialogue-title { font-size: 30px; }
   .moon-quote { margin-top: 12px; font-size: 20px; }

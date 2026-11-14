@@ -1,1 +1,1 @@
-- [Progress-safe gameplay checks](gameplay-verification.md) — preserve existing browser saves when testing fresh-start flows.
+- [Progress-safe gameplay checks](gameplay-verification.md) — preserve stamps during exhibit replacements and wait for Phaser readiness before key-driven tests.

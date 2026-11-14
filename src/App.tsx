@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
-import { ASTRONAUTS, EXHIBITS } from "./data/exhibits";
+import { ASTRONAUTS, EXHIBITS, EXHIBIT_ID_ALIASES } from "./data/exhibits";
 import type { Exhibit } from "./data/exhibits";
 import MuseumCanvas from "./game/MuseumCanvas";
 import type { MuseumScene } from "./game/MuseumScene";
@@ -18,12 +18,18 @@ function loadProgress(): Progress | null {
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<Progress>;
     if (!value.astronaut || !["Moon", "Mars"].includes(value.planet ?? "") || typeof value.oxygen !== "number") return null;
+    const normalizeIds = (ids: unknown) => Array.isArray(ids)
+      ? [...new Set(ids
+        .filter((id): id is string => typeof id === "string")
+        .map((id) => EXHIBIT_ID_ALIASES[id] ?? id)
+        .filter((id) => EXHIBITS.some((exhibit) => exhibit.id === id)))]
+      : [];
     return {
       astronaut: value.astronaut,
       planet: value.planet as Planet,
       oxygen: Math.max(0, Math.min(100, value.oxygen)),
-      completed: Array.isArray(value.completed) ? value.completed.filter((id): id is string => EXHIBITS.some(e => e.id === id)) : [],
-      stamps: Array.isArray(value.stamps) ? value.stamps.filter((id): id is string => EXHIBITS.some(e => e.id === id)) : []
+      completed: normalizeIds(value.completed),
+      stamps: normalizeIds(value.stamps)
     };
   } catch { return null; }
 }
@@ -59,6 +65,12 @@ function Suit({ color, size = 96, name }: { color: string; size?: number; name?:
 }
 
 function HardwareArt({ exhibit, size = 112 }: { exhibit: Exhibit; size?: number }) {
+  if (exhibit.characterImage) {
+    return <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40" style={{ width: size, height: size }} role="img" aria-label={exhibit.characterImageAlt ?? `AI-generated character illustration of ${exhibit.name}`}>
+      <img src={exhibit.characterImage} alt="" className="h-full w-full object-cover" />
+      {exhibit.imageWarning && <span className="absolute inset-x-0 bottom-0 bg-rose-950/90 px-1 py-1 text-center font-mono text-[7px] font-bold leading-tight tracking-wide text-rose-100">TEMP ART · REPLACE</span>}
+    </div>;
+  }
   const fill = `#${exhibit.color.toString(16).padStart(6, "0")}`;
   return <svg width={size} height={size} viewBox="0 0 120 120" role="img" aria-label={`Illustration of ${exhibit.name}`}>
     <circle cx="60" cy="60" r="54" fill={fill} opacity=".13" />
@@ -84,6 +96,37 @@ function HardwareArt({ exhibit, size = 112 }: { exhibit: Exhibit; size?: number 
       <path d="M37 81 29 91m54-10 8 10" stroke={fill} strokeWidth="4" strokeLinecap="round" />
     </>}
   </svg>;
+}
+
+function MoonSourcesCredits({ exhibit }: { exhibit: Exhibit }) {
+  if (exhibit.planet !== "Moon") return null;
+  return <section className="mt-5 rounded-xl border border-cyan-100/15 bg-cyan-100/[.035] p-4" aria-labelledby={`sources-${exhibit.id}`}>
+    <h3 id={`sources-${exhibit.id}`} className="mono text-[10px] font-medium tracking-[.2em] text-cyan-100">SOURCES &amp; CREDITS</h3>
+    <div className="mt-3">
+      <p className="mono text-[8px] tracking-[.16em] text-slate-500">NASA-REFERENCED FACTS</p>
+      <p className="mt-1 text-xs leading-relaxed text-slate-300">Mission facts are cross-checked against the linked NASA references. The character personality and first-person dialogue are creative storytelling, not quotations.</p>
+      <ul className="mt-2 space-y-1.5">{exhibit.sources.map((source) => <li key={source.url}>
+        <a href={source.url} target="_blank" rel="noreferrer" className="text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{source.label} ↗</a>
+      </li>)}</ul>
+    </div>
+    <div className="mt-3 border-t border-white/10 pt-3">
+      <p className="mono text-[8px] tracking-[.16em] text-slate-500">CHARACTER ILLUSTRATION</p>
+      <p className="mt-1 text-xs leading-relaxed text-slate-300">{exhibit.characterImageCredit}</p>
+      {exhibit.imageWarning && <p className="mt-2 rounded-lg border border-rose-200/25 bg-rose-300/[.08] p-2 text-xs font-semibold leading-relaxed text-rose-100">{exhibit.imageWarning}</p>}
+    </div>
+  </section>;
+}
+
+function MoonMemoryReview({ exhibit }: { exhibit: Exhibit }) {
+  if (exhibit.planet !== "Moon") return null;
+  return <details className="mt-5 rounded-xl border border-white/10 bg-white/[.035] p-3 text-left">
+    <summary className="cursor-pointer text-xs font-semibold text-cyan-100">Memory answers &amp; explanations</summary>
+    <ol className="mt-3 space-y-3">{exhibit.memory.map((question, index) => <li key={question.prompt} className="text-xs leading-relaxed text-slate-300">
+      <p className="font-semibold">{index + 1}. {question.prompt}</p>
+      <p className="mt-1 text-cyan-100">Correct answer: {question.options[question.answer]}</p>
+      <p className="mt-1">{question.explanation}</p>
+    </li>)}</ol>
+  </details>;
 }
 
 function Stamp({ exhibit, done }: { exhibit?: Exhibit; done: boolean }) {
@@ -131,7 +174,7 @@ function GameModal({ modal, exhibit, progress, storyIndex, memoryIndex, onClose,
       <div className="flex justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-200">{modal === "how" ? "FIELD GUIDE" : "CREDITS / SOURCES"}</span><button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-white"><Icon name="close" /></button></div>
       {modal === "how" ? <><h2 className="display mt-3 text-3xl font-bold">Explore at your own pace.</h2><div className="mt-5 grid gap-3 text-sm leading-relaxed text-slate-300">
         <p><b className="text-cyan-100">Move:</b> WASD or arrow keys. On touchscreens, use the directional pad.</p><p><b className="text-cyan-100">Inspect:</b> Walk near a display and press E, or tap Inspect.</p><p><b className="text-cyan-100">Restore:</b> Answer one curiosity question, listen to the story, then answer all three memory questions. Correct answers add 20 oxygen; wrong answers use 20. There is no timer.</p><p><b className="text-cyan-100">Travel:</b> Collect all three Moon stamps to open the Mars gallery. Check your passport at any time.</p>
-      </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Every exhibit is marked DEMO CONTENT awaiting team research. Facts and links are starter references for team review; this playable demonstration is not a NASA publication.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map(s => <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div></>}
+      </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon mission facts link to NASA references in each exhibit; character dialogue and personalities are creative storytelling, not quotations. Mars exhibits remain DEMO CONTENT awaiting team research. Character illustrations are artistic interpretations, not NASA photographs.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map(s => <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div></>}
       <button className="btn-secondary mt-7 rounded-xl px-5 py-3 text-sm" onClick={onClose}>Back to the museum</button>
     </div>
   </div>;
@@ -146,12 +189,12 @@ function GameModal({ modal, exhibit, progress, storyIndex, memoryIndex, onClose,
     <div className="exhibit-card screen-in relative my-auto w-full max-w-xl overflow-hidden rounded-3xl p-5 sm:p-8" role="dialog" aria-modal="true">
       <div className="absolute -right-20 -top-24 h-56 w-56 rounded-full opacity-30 blur-3xl" style={{ background: `#${exhibit.color.toString(16).padStart(6, "0")}` }} />
       <div className="relative">
-        <div className="flex items-center justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-100/75">DEMO CONTENT · AWAITING TEAM RESEARCH</span><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close exhibit"><Icon name="close" /></button></div>
-        {modal === "inspect" && <><div className="mt-5 flex items-center gap-4"><div className="rounded-2xl border border-white/10 bg-slate-950/30 p-1"><HardwareArt exhibit={exhibit} size={106} /></div><div><div className="mono text-[10px] tracking-[.18em] text-slate-400">{exhibit.planet.toUpperCase()} / {exhibit.mission.toUpperCase()}</div><h2 className="display mt-1 text-2xl font-bold leading-tight sm:text-3xl">{exhibit.name}</h2><p className="mt-1 text-xs text-slate-400">{exhibit.dates}</p></div></div><div className="mt-5 rounded-xl border border-white/10 bg-white/[.035] p-4"><p className="text-sm leading-relaxed text-slate-300">{exhibit.intro}</p><p className="mt-3 text-xs text-slate-500">Character note: {exhibit.personality}.</p></div><button onClick={onAction} className="btn-primary mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Meet the exhibit <Icon name="arrow" /></button></>}
+        <div className="flex items-center justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-100/75">{exhibit.planet === "Moon" ? "NASA-REFERENCED FACTS · CREATIVE STORY" : "DEMO CONTENT · AWAITING TEAM RESEARCH"}</span><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close exhibit"><Icon name="close" /></button></div>
+        {modal === "inspect" && <><div className="mt-5 flex items-center gap-4"><div className="rounded-2xl border border-white/10 bg-slate-950/30 p-1"><HardwareArt exhibit={exhibit} size={106} /></div><div><div className="mono text-[10px] tracking-[.18em] text-slate-400">{exhibit.planet.toUpperCase()} / {exhibit.mission.toUpperCase()}</div><h2 className="display mt-1 text-2xl font-bold leading-tight sm:text-3xl">{exhibit.name}</h2><p className="mt-1 text-xs text-slate-400">{exhibit.dates}</p></div></div><div className="mt-5 rounded-xl border border-white/10 bg-white/[.035] p-4"><p className="text-sm leading-relaxed text-slate-300">{exhibit.intro}</p><p className="mt-3 text-xs text-slate-500">Character note: {exhibit.personality}.</p></div><MoonSourcesCredits exhibit={exhibit} /><button onClick={onAction} className="btn-primary mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Meet the exhibit <Icon name="arrow" /></button></>}
         {modal === "hook" && <><div className="flex items-center gap-3"><HardwareArt exhibit={exhibit} size={74} /><div><span className="mono text-[10px] tracking-[.2em] text-cyan-100/70">FIRST, A CURIOSITY</span><h2 className="display mt-1 text-2xl font-bold">{exhibit.name}</h2></div></div><p className="mt-4 text-lg font-semibold leading-snug">{exhibit.hook.prompt}</p><div className="mt-4 grid gap-2">{exhibit.hook.options.map((option, i) => <button key={option} onClick={() => setHookAnswer(i)} className={`answer-option ${hookAnswer === i ? (i === exhibit.hook.answer ? "answer-correct" : "answer-wrong") : ""}`}>{String.fromCharCode(65 + i)}<span>{option}</span></button>)}</div>{hookAnswer !== null && <div className="mt-4 rounded-xl border border-cyan-200/20 bg-cyan-200/[.06] p-3 text-sm text-slate-200"><b className="text-cyan-100">{hookAnswer === exhibit.hook.answer ? "That is it." : `Correct answer: ${exhibit.hook.options[exhibit.hook.answer]}.`}</b> {exhibit.hook.explanation}</div>}<button onClick={onAction} disabled={hookAnswer === null} className="btn-primary mt-5 w-full rounded-xl px-4 py-3.5 font-bold disabled:cursor-not-allowed disabled:opacity-40">Continue to the story <Icon name="arrow" size={16} /></button></>}
-        {modal === "story" && <><div className="mono text-[10px] tracking-[.2em] text-cyan-100/70">STORY / {String(storyIndex + 1).padStart(2, "0")} OF {String(exhibit.story.length).padStart(2, "0")}</div><div className="mt-5 flex gap-4 sm:gap-5"><div className="shrink-0 rounded-2xl border border-white/10 bg-white/[.04] p-1"><HardwareArt exhibit={exhibit} size={92} /></div><div className="min-w-0"><div className="mono text-[10px] tracking-wider text-slate-400">A VOICE FROM THE ARCHIVE</div><h2 className="display mt-1 text-xl font-bold">{exhibit.name}</h2><p className="mt-3 text-[15px] leading-relaxed text-slate-200 sm:text-base">{exhibit.story[storyIndex]}</p></div></div><div className="mt-6 flex items-center justify-between"><div className="flex gap-1.5">{exhibit.story.map((_, i) => <span key={i} className={`h-1.5 rounded-full ${i === storyIndex ? "w-6 bg-cyan-200" : "w-1.5 bg-slate-600"}`} />)}</div><button className="btn-primary flex items-center gap-2 rounded-xl px-5 py-3 font-bold" onClick={onNextStory}>{storyIndex === exhibit.story.length - 1 ? "Restore memories" : "Next"} <Icon name="arrow" size={16} /></button></div></>}
+        {modal === "story" && <><div className="mono text-[10px] tracking-[.2em] text-cyan-100/70">STORY / {String(storyIndex + 1).padStart(2, "0")} OF {String(exhibit.story.length).padStart(2, "0")}</div><div className="mt-5 flex gap-4 sm:gap-5"><div className="shrink-0 rounded-2xl border border-white/10 bg-white/[.04] p-1"><HardwareArt exhibit={exhibit} size={92} /></div><div className="min-w-0"><div className="mono text-[10px] tracking-wider text-slate-400">A VOICE FROM THE ARCHIVE</div>{exhibit.planet === "Moon" && <div className="mt-1 text-[10px] text-cyan-100/70">Creative character dialogue · not a NASA quotation</div>}<h2 className="display mt-1 text-xl font-bold">{exhibit.name}</h2><p className="mt-3 text-[15px] leading-relaxed text-slate-200 sm:text-base">{exhibit.story[storyIndex]}</p></div></div><div className="mt-6 flex items-center justify-between"><div className="flex gap-1.5">{exhibit.story.map((_, i) => <span key={i} className={`h-1.5 rounded-full ${i === storyIndex ? "w-6 bg-cyan-200" : "w-1.5 bg-slate-600"}`} />)}</div><button className="btn-primary flex items-center gap-2 rounded-xl px-5 py-3 font-bold" onClick={onNextStory}>{storyIndex === exhibit.story.length - 1 ? "Restore memories" : "Next"} <Icon name="arrow" size={16} /></button></div></>}
         {modal === "memory" && (() => { const question = exhibit.memory[memoryIndex]; return <><div className="flex items-center justify-between"><div><div className="mono text-[10px] tracking-[.2em] text-cyan-100/70">MEMORY RESTORATION / {memoryIndex + 1} OF 3</div><h2 className="display mt-2 text-2xl font-bold">Help me restore my memories!</h2></div><div className="oxygen-mini">{progress.oxygen}%<small>OXYGEN</small></div></div><div className="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.03] p-3"><HardwareArt exhibit={exhibit} size={62} /><p className="text-base font-semibold leading-snug">{question.prompt}</p></div><div className="mt-4 grid gap-2">{question.options.map((option, i) => <button key={option} disabled={memoryAnswer !== null} onClick={() => { setMemoryAnswer(i); onAnswer(i); }} className={`answer-option ${memoryAnswer === i ? (i === question.answer ? "answer-correct" : "answer-wrong") : ""}`}>{String.fromCharCode(65 + i)}<span>{option}</span></button>)}</div>{memoryAnswer !== null && <div className={`mt-4 rounded-xl border p-3 text-sm ${memoryAnswer === question.answer ? "border-emerald-200/20 bg-emerald-200/[.06]" : "border-rose-200/20 bg-rose-200/[.06]"}`}><b className={memoryAnswer === question.answer ? "text-emerald-100" : "text-rose-100"}>{memoryAnswer === question.answer ? "Memory restored. +20 oxygen" : "Not quite. −20 oxygen"}</b><p className="mt-1 text-slate-300">{question.explanation}{memoryAnswer !== question.answer ? " Try this same memory again." : ""}</p>{memoryAnswer !== question.answer && <button onClick={() => setMemoryAnswer(null)} className="btn-secondary mt-3 rounded-lg px-4 py-2 text-xs font-semibold">Retry this memory</button>}</div>}</>; })()}
-        {modal === "stamp" && <div className="py-4 text-center"><div className="celebration-orbit mx-auto grid h-32 w-32 place-items-center rounded-full"><HardwareArt exhibit={exhibit} size={104} /></div><div className="mono mt-4 text-[10px] tracking-[.25em] text-cyan-100">PASSPORT STAMP ISSUED</div><h2 className="display mt-2 text-4xl font-bold">Memory Restored!</h2><p className="mt-2 text-sm text-slate-300">A new mark for {exhibit.name}.</p><div className="mx-auto mt-5 max-w-xs"><Stamp exhibit={exhibit} done /></div><button onClick={onAction} className="btn-primary mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Return to the gallery <Icon name="arrow" /></button></div>}
+        {modal === "stamp" && <div className="py-4 text-center"><div className="celebration-orbit mx-auto grid h-32 w-32 place-items-center rounded-full"><HardwareArt exhibit={exhibit} size={104} /></div><div className="mono mt-4 text-[10px] tracking-[.25em] text-cyan-100">PASSPORT STAMP ISSUED</div><h2 className="display mt-2 text-4xl font-bold">Memory Restored!</h2><p className="mt-2 text-sm text-slate-300">A new mark for {exhibit.name}.</p><div className="mx-auto mt-5 max-w-xs"><Stamp exhibit={exhibit} done /></div><MoonMemoryReview exhibit={exhibit} /><button onClick={onAction} className="btn-primary mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold">Return to the gallery <Icon name="arrow" /></button></div>}
       </div>
     </div>
   </div>;
@@ -306,7 +349,7 @@ export default function App() {
 
     {screen === "legacy" && <section className="relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-4 py-8">
       <div className="legacy-scene screen-in w-full max-w-5xl"><div className="text-center"><span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span><h1 className="display mt-3 text-4xl font-bold sm:text-6xl">All Memories Restored!</h1><p className="mt-3 text-sm text-slate-400">Six journeys, held in one constellation.</p></div>
-        <div className="legacy-wall mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">{EXHIBITS.map((e, i) => <article key={e.id} className="legacy-item" style={{ animationDelay: `${i * 180}ms` }}><div className="legacy-art"><HardwareArt exhibit={e} size={96} /></div><h2 className="display text-sm font-bold sm:text-base">{e.name}</h2><p className="legacy-contribution">{e.contribution}</p><span className="mono text-[8px] tracking-wider text-slate-600">{e.planet.toUpperCase()} / DEMO CONTENT</span></article>)}</div>
+        <div className="legacy-wall mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">{EXHIBITS.map((e, i) => <article key={e.id} className="legacy-item" style={{ animationDelay: `${i * 180}ms` }}><div className="legacy-art"><HardwareArt exhibit={e} size={96} /></div><h2 className="display text-sm font-bold sm:text-base">{e.name}</h2><p className="legacy-contribution">{e.contribution}</p><span className="mono text-[8px] tracking-wider text-slate-600">{e.planet.toUpperCase()} / {e.planet === "Moon" ? "NASA SOURCES · AI ART" : "DEMO CONTENT"}</span></article>)}</div>
         <p className="display mx-auto mt-8 max-w-xl text-center text-xl font-medium text-cyan-100 sm:text-2xl">“Their missions may have ended, but their discoveries live on.”</p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><button onClick={() => { setModal(null); setScreen("welcome"); }} className="btn-secondary rounded-xl px-6 py-3.5 font-semibold">Return to Main Menu</button><button onClick={newAdventure} className="btn-primary rounded-xl px-6 py-3.5 font-bold">Start a New Adventure <Icon name="arrow" size={16} /></button></div>
       </div>

@@ -23,55 +23,155 @@ export type Exhibit = {
   hook: OptionQuestion;
   memory: OptionQuestion[];
   sources: { label: string; url: string }[];
+  galleryName?: string;
+  characterImage?: string;
+  characterImageAlt?: string;
+  characterImageCredit?: string;
+  imageWarning?: string;
 };
 
-// Demo copy is intentionally conservative. Team Astralis should replace/approve
-// this material with its research before presenting it as final educational content.
+const eagleCharacterImage = new URL("../../attached_assets/eagle_ai_character_1794658396088.jpg", import.meta.url).href;
+const lunarRoverCharacterImage = new URL("../../attached_assets/lrv_ai_character_1794658396088.jpg", import.meta.url).href;
+const alsepCharacterImage = new URL("../../attached_assets/alsep_ai_character_REPLACE_1794658396088.jpg", import.meta.url).href;
+
+export const EXHIBIT_ID_ALIASES: Record<string, string> = {
+  // Preserve stamps saved under the previous Moon exhibit name.
+  "surveyor-3": "apollo-11-eagle"
+};
+
 export const EXHIBITS: Exhibit[] = [
   {
-    id: "surveyor-3", name: "Surveyor 3", planet: "Moon", mission: "Surveyor program", dates: "Landed April 20, 1967", location: "Oceanus Procellarum", objective: "Send an uncrewed spacecraft to the lunar surface and examine its local terrain.", contribution: "Returned television images and used a surface sampler to investigate lunar soil.", ending: "Apollo 12 astronauts visited the spacecraft in 1969 and returned selected components to Earth for examination.", personality: "Curious, patient, and a little dusty", color: 0x7ce4f1, symbol: "S", intro: "A lunar lander with three long legs and a story that crossed paths with Apollo 12. This is DEMO CONTENT awaiting team research.", story: [
-      "Hello, Earth visitor. I am Surveyor 3, one of NASA's uncrewed lunar landers.",
-      "I touched down on the Moon in April 1967, in a region called Oceanus Procellarum.",
-      "My cameras sent television images home, while my surface sampler helped investigate the ground nearby.",
-      "I was part of a program that gathered information about the lunar surface before crewed landings.",
-      "Two years later, Apollo 12 astronauts landed close by and visited me.",
-      "They brought selected parts of me back to Earth for scientists to examine. My mission became part of another mission's story.",
-      "I am quiet now, but those images and returned components still help tell the story of lunar exploration."
-    ], hook: { prompt: "What kind of spacecraft was Surveyor 3?", options: ["A crewed Moon rover", "An uncrewed lunar lander", "A Mars orbiter", "A communications satellite"], answer: 1, explanation: "Surveyor 3 was an uncrewed spacecraft that landed on the Moon." }, memory: [
-      { prompt: "Where did Surveyor 3 land?", options: ["Oceanus Procellarum on the Moon", "Jezero Crater on Mars", "Earth's Pacific Ocean", "The far side of the Moon"], answer: 0, explanation: "Surveyor 3 landed in Oceanus Procellarum, a lunar mare region." },
-      { prompt: "Which tool helped Surveyor 3 investigate the nearby surface?", options: ["A sample-return rocket", "A surface sampler", "A submarine drill", "A weather balloon"], answer: 1, explanation: "Surveyor 3 carried a surface sampler to investigate lunar soil." },
-      { prompt: "What happened to selected Surveyor 3 components in 1969?", options: ["Apollo 12 astronauts returned them to Earth", "They were launched toward Mars", "They were buried by a rover", "They were carried to orbit by Surveyor 3"], answer: 0, explanation: "Apollo 12 astronauts visited Surveyor 3 and brought selected components home." }
-    ], sources: [{ label: "NASA — Surveyor 3", url: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1967-035A" }, { label: "NASA — Apollo 12", url: "https://www.nasa.gov/mission/apollo-12/" }]
+    id: "apollo-11-eagle",
+    name: "Apollo 11 Eagle Lunar Module",
+    planet: "Moon",
+    mission: "Apollo 11",
+    dates: "Landed July 20, 1969",
+    location: "Sea of Tranquility, Moon (descent stage only)",
+    objective: "Land the first crew on the Moon and return them safely to Earth.",
+    contribution: "Carried Neil Armstrong and Buzz Aldrin from lunar orbit to the Apollo 11 landing site.",
+    ending: "The ascent stage lifted off to rejoin Columbia. Only Eagle's descent stage remained at the lunar landing site.",
+    personality: "Steady, historic, and ready for a careful landing",
+    color: 0x7ce4f1,
+    symbol: "E",
+    galleryName: "Apollo 11 Eagle",
+    intro: "The Apollo 11 Lunar Module that carried Armstrong and Aldrin to the Sea of Tranquility. Its descent stage—not the whole Eagle—remained at the landing site.",
+    characterImage: eagleCharacterImage,
+    characterImageAlt: "AI-generated artistic interpretation of the Apollo 11 Eagle Lunar Module; not an authentic NASA photograph.",
+    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
+    story: [
+      "Hello, explorer. I am Eagle, the Lunar Module flown on Apollo 11.",
+      "On July 20, 1969, I brought Neil Armstrong and Buzz Aldrin down to the Sea of Tranquility.",
+      "Michael Collins stayed above in Columbia while my crew began their work on the lunar surface.",
+      "Armstrong and Aldrin stepped outside to explore, photograph the site, and collect lunar samples.",
+      "After their surface stay, my ascent stage lifted off and carried them back to lunar orbit.",
+      "They rendezvoused with Columbia and continued their journey home to Earth.",
+      "Only my descent stage remained at the landing site after my crew departed."
+    ],
+    hook: {
+      prompt: "What part of Eagle remained at the Apollo 11 landing site after the crew left the Moon?",
+      options: ["The command module", "The Lunar Module descent stage", "The ascent stage", "The launch escape tower"],
+      answer: 1,
+      explanation: "The ascent stage lifted off with Armstrong and Aldrin. The descent stage was left at the Sea of Tranquility."
+    },
+    memory: [
+      { prompt: "What was the Apollo 11 Lunar Module called?", options: ["Columbia", "Eagle", "Challenger", "Discovery"], answer: 1, explanation: "Eagle was the Apollo 11 Lunar Module; Columbia was the Command Module." },
+      { prompt: "Where did Eagle land?", options: ["The Sea of Tranquility", "Oceanus Procellarum", "Hadley–Apennine", "Ares Vallis"], answer: 0, explanation: "Apollo 11 landed at the Sea of Tranquility on July 20, 1969." },
+      { prompt: "Which part of Eagle remained at the landing site?", options: ["The descent stage", "The ascent stage", "The Command Module", "The launch escape tower"], answer: 0, explanation: "Only the Lunar Module's descent stage remained at the lunar landing site." }
+    ],
+    sources: [
+      { label: "NASA — Apollo 11 Mission Overview", url: "https://www.nasa.gov/missions/apollo/apollo-11-mission-overview/" },
+      { label: "NASA — Apollo 11: The Journey Home", url: "https://www.nasa.gov/history/50-years-ago-apollo-11-the-journey-home/" }
+    ]
   },
   {
-    id: "apollo-rover", name: "Apollo 15 Lunar Roving Vehicle", planet: "Moon", mission: "Apollo 15", dates: "First used on the Moon in 1971", location: "Hadley–Apennine region", objective: "Extend astronaut mobility and help crews explore farther from their lunar landing site.", contribution: "Carried astronauts and equipment across the lunar surface during Apollo 15.", ending: "The rover remained at the mission's lunar site after the astronauts departed.", personality: "Ready to roll, steady, and practical", color: 0xffbc79, symbol: "R", intro: "A battery-powered lunar car that carried astronauts on Apollo 15. This is DEMO CONTENT awaiting team research.", story: [
-      "Greetings, explorer. I am the Lunar Roving Vehicle used by the Apollo 15 crew.",
-      "NASA designed me to let astronauts travel farther over the Moon than they could on foot.",
-      "I folded for the journey and was deployed on the lunar surface at Hadley–Apennine.",
-      "Astronauts drove me, while I carried people and equipment across the terrain.",
-      "My wheels, seats, and navigation equipment helped make surface traverses possible.",
-      "When the crew left the Moon, I stayed at the site. No engine sound followed them home.",
-      "My tracks and the work done on those journeys remain part of the record of lunar exploration."
-    ], hook: { prompt: "Why did NASA send a Lunar Roving Vehicle with Apollo 15?", options: ["To help astronauts travel farther on the Moon", "To fly astronauts back to Earth", "To dig a tunnel under the Moon", "To map Mars from orbit"], answer: 0, explanation: "The rover extended the distance astronauts could explore on the lunar surface." }, memory: [
-      { prompt: "Who drove the Apollo 15 Lunar Roving Vehicle?", options: ["Astronauts on the lunar surface", "A remote team from Mars", "The rover drove itself home", "It was towed by Surveyor 3"], answer: 0, explanation: "Apollo astronauts operated the rover during their lunar surface exploration." },
-      { prompt: "What was the rover designed to improve?", options: ["Astronaut mobility on the Moon", "Deep-space radio reception", "The lunar lander's fuel supply", "Earth's weather forecasts"], answer: 0, explanation: "The Lunar Roving Vehicle helped astronauts cover more ground." },
-      { prompt: "Where did the rover remain after the crew departed?", options: ["At its lunar mission site", "In lunar orbit", "On a Mars landing pad", "Inside the Apollo command module"], answer: 0, explanation: "The rover was left behind at the Apollo 15 lunar site." }
-    ], sources: [{ label: "NASA — Apollo 15", url: "https://www.nasa.gov/mission/apollo-15/" }, { label: "NASA — Lunar Roving Vehicle", url: "https://www.nasa.gov/history/alsj/a15/a15lr.html" }]
+    id: "apollo-rover",
+    name: "Apollo Lunar Roving Vehicle",
+    planet: "Moon",
+    mission: "Apollo 15, Apollo 16, and Apollo 17",
+    dates: "Driven on the Moon in 1971 and 1972",
+    location: "Apollo 15, 16, and 17 landing sites",
+    objective: "Extend astronaut mobility during lunar surface exploration.",
+    contribution: "Three separate battery-powered LRVs carried crews and equipment on lunar traverses.",
+    ending: "One LRV was used on each of Apollo 15, 16, and 17; each remained at its mission's lunar site.",
+    personality: "Practical, dependable, and happiest on the move",
+    color: 0xffbc79,
+    symbol: "R",
+    galleryName: "Lunar Roving Vehicle",
+    intro: "A battery-powered lunar vehicle. Three separate LRVs were driven on the Moon—one each on Apollo 15, 16, and 17.",
+    characterImage: lunarRoverCharacterImage,
+    characterImageAlt: "AI-generated artistic interpretation of an Apollo Lunar Roving Vehicle; not an authentic NASA photograph.",
+    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
+    story: [
+      "Hey, explorer. I am the Lunar Roving Vehicle, or LRV.",
+      "Apollo crews did not share one rover: a separate LRV flew on each of Apollo 15, 16, and 17.",
+      "I was a battery-powered electric vehicle designed to carry astronauts farther across the lunar surface.",
+      "For launch, my chassis folded into a storage bay on the Lunar Module.",
+      "After landing, astronauts deployed and drove me on surface traverses with science equipment aboard.",
+      "My wire-mesh wheels and electric drive motors were built for lunar travel.",
+      "Each mission left its own rover at its landing site when the crew headed home."
+    ],
+    hook: {
+      prompt: "Why did NASA send a Lunar Roving Vehicle with Apollo 15?",
+      options: ["To help astronauts travel farther on the Moon", "To fly astronauts back to Earth", "To dig a tunnel under the Moon", "To map Mars from orbit"],
+      answer: 0,
+      explanation: "The LRV extended the distance Apollo astronauts could explore on the lunar surface."
+    },
+    memory: [
+      { prompt: "How many separate LRVs were driven on the Moon?", options: ["One", "Two", "Three", "Six"], answer: 2, explanation: "One separate LRV was used on each of Apollo 15, Apollo 16, and Apollo 17." },
+      { prompt: "What powered the Lunar Roving Vehicle?", options: ["Gasoline", "Steam", "Batteries", "Solar wind"], answer: 2, explanation: "The LRV was an electric vehicle powered by onboard batteries." },
+      { prompt: "How was the LRV carried to the lunar surface?", options: ["Folded into a Lunar Module storage bay", "Flying independently from Earth", "Built on the Moon", "Carried outside the Saturn V rocket"], answer: 0, explanation: "The rover folded into a Lunar Module bay for transport and was deployed by the astronauts." }
+    ],
+    sources: [
+      { label: "NASA — The Apollo Lunar Roving Vehicle (NSSDCA)", url: "https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html" },
+      { label: "NASA — Apollo 15", url: "https://www.nasa.gov/missions/apollo/apollo-15" },
+      { label: "NASA — Apollo 16 Mission Details", url: "https://www.nasa.gov/mission_pages/apollo/missions/apollo16.html" },
+      { label: "NASA — Apollo 17 Mission Details", url: "https://www.nasa.gov/missions/apollo/apollo-17-mission-details/" }
+    ]
   },
   {
-    id: "alsep", name: "Apollo Lunar Surface Experiments Package", planet: "Moon", mission: "Apollo lunar surface experiments", dates: "Deployed during Apollo surface missions", location: "Multiple Apollo landing sites", objective: "Operate scientific instruments on the lunar surface to study its environment and interior.", contribution: "ALSEP instruments collected data on topics including moonquakes, heat flow, and the lunar environment.", ending: "The Apollo ALSEP instruments were shut down in 1977; their collected data remains a scientific record.", personality: "Thoughtful, observant, and full of questions", color: 0xc5a6ff, symbol: "A", intro: "A family of lunar science instruments, not a single rover. This is DEMO CONTENT awaiting team research.", story: [
-      "I am ALSEP: the Apollo Lunar Surface Experiments Package, a set of scientific instruments.",
-      "Apollo crews deployed packages of instruments at several lunar landing sites.",
-      "Different instruments studied different parts of the Moon and its environment.",
-      "Among the investigations were measurements related to moonquakes and heat flow.",
-      "The instruments sent information back after the astronauts had returned to their spacecraft.",
-      "ALSEP operations ended in 1977, after years of collecting data from the lunar surface.",
-      "A quiet instrument can leave a long echo: the measurements remain part of lunar science history."
-    ], hook: { prompt: "What does ALSEP describe?", options: ["A family of Apollo lunar science instruments", "A Mars landing capsule", "A crewed lunar car", "A telescope in Earth orbit"], answer: 0, explanation: "ALSEP was a package of scientific instruments deployed by Apollo crews." }, memory: [
-      { prompt: "What was ALSEP's main role?", options: ["Conduct scientific measurements on the Moon", "Transport astronauts to Mars", "Broadcast television from Earth", "Return a lunar rover to Earth"], answer: 0, explanation: "ALSEP instruments investigated the Moon and its environment." },
-      { prompt: "Which topics were studied by ALSEP instruments?", options: ["Moonquakes and heat flow", "Ocean tides and clouds", "Mars seasons and dust", "Earth's magnetic poles only"], answer: 0, explanation: "ALSEP included investigations of lunar seismic activity and heat flow." },
-      { prompt: "When did Apollo ALSEP operations end?", options: ["1977", "1961", "1997", "2018"], answer: 0, explanation: "The Apollo ALSEP instruments were shut down in 1977." }
-    ], sources: [{ label: "NASA — Apollo Lunar Surface Journal: ALSEP", url: "https://www.nasa.gov/history/alsj/alsj-ALSEP.html" }, { label: "NASA — Apollo 17", url: "https://www.nasa.gov/mission/apollo-17/" }]
+    id: "alsep",
+    name: "Apollo Lunar Surface Experiments Package (ALSEP)",
+    planet: "Moon",
+    mission: "Apollo 12, 14, 15, 16, and 17",
+    dates: "Deployed from 1969 to 1972; operations ended September 30, 1977",
+    location: "Multiple Apollo landing sites",
+    objective: "Collect scientific measurements at lunar sites after astronauts departed.",
+    contribution: "ALSEP experiments included seismic measurements and other studies of the lunar environment, including heat flow.",
+    ending: "Mission Control ended ALSEP operations on September 30, 1977. The packages remained at their lunar sites.",
+    personality: "Patient, observant, and full of questions",
+    color: 0xc5a6ff,
+    symbol: "A",
+    galleryName: "ALSEP Science Package",
+    intro: "ALSEP was a family of Apollo science instruments—not a rover and not a Surveyor lander. The mapped concept image is temporary and scientifically inaccurate.",
+    characterImage: alsepCharacterImage,
+    characterImageAlt: "Temporary AI-generated artistic interpretation of an ALSEP package; it incorrectly depicts wheels and is not an authentic NASA photograph.",
+    characterImageCredit: "AI-generated artistic interpretation supplied with this project; not an authentic NASA photograph.",
+    imageWarning: "TEMPORARY CONCEPT ART — this illustration shows wheels and is not scientifically faithful to ALSEP. Replace it before release.",
+    story: [
+      "Greetings, explorer. I am ALSEP, the Apollo Lunar Surface Experiments Package.",
+      "I am a collection of scientific instruments, not a rover or a Surveyor lander.",
+      "Apollo crews deployed ALSEP packages at the Apollo 12, 14, 15, 16, and 17 landing sites.",
+      "My instruments gathered information about the Moon after the astronauts returned to their spacecraft.",
+      "Seismic experiments listened for lunar ground motion, while other instruments investigated different properties such as heat flow.",
+      "Mission Control ended ALSEP operations on September 30, 1977, after packages operated for years.",
+      "The instruments stayed at their sites; the measurements they sent became part of the record of lunar science."
+    ],
+    hook: {
+      prompt: "What does ALSEP describe?",
+      options: ["A family of Apollo lunar science instruments", "A Mars landing capsule", "A crewed lunar car", "A telescope in Earth orbit"],
+      answer: 0,
+      explanation: "ALSEP was a family of Apollo scientific instruments deployed on the Moon; it was separate from Surveyor landers."
+    },
+    memory: [
+      { prompt: "What was ALSEP?", options: ["A collection of Apollo lunar science experiments", "A crewed Moon rover", "A Surveyor lander", "A Mars weather station"], answer: 0, explanation: "ALSEP was a collection of scientific instruments deployed at Apollo landing sites." },
+      { prompt: "Which instrument type in ALSEP measured lunar seismic activity?", options: ["Seismometers", "Barometers", "Thermal cameras", "Radar altimeters"], answer: 0, explanation: "ALSEP included seismic experiments with instruments that recorded lunar ground motion." },
+      { prompt: "When did Mission Control end ALSEP operations?", options: ["September 30, 1977", "July 20, 1969", "December 7, 1972", "April 20, 1967"], answer: 0, explanation: "ALSEP operations were terminated on September 30, 1977." }
+    ],
+    sources: [
+      { label: "NASA — Apollo 12: The Pinpoint Mission", url: "https://www.nasa.gov/missions/apollo/apollo-12-the-pinpoint-mission" },
+      { label: "NASA — Apollo Lunar Surface Journal: ALSEP", url: "https://www.nasa.gov/history/alsj/HamishALSEP.html" },
+      { label: "NASA — Apollo 17 Mission Details", url: "https://www.nasa.gov/missions/apollo/apollo-17-mission-details/" }
+    ]
   },
   {
     id: "sojourner", name: "Sojourner", planet: "Mars", mission: "Mars Pathfinder", dates: "Landed July 4, 1997", location: "Ares Vallis, Mars", objective: "Demonstrate a small mobile rover and investigate rocks and soil near the Pathfinder lander.", contribution: "Became the first rover to operate on Mars and examined nearby rocks and soil.", ending: "The Pathfinder mission ended after communication with the lander was lost.", personality: "Small, brave, and endlessly curious", color: 0xffb27e, symbol: "S", intro: "A small Mars rover that explored near the Pathfinder lander. This is DEMO CONTENT awaiting team research.", story: [

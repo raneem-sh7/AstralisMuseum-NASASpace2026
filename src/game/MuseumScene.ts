@@ -37,6 +37,12 @@ export class MuseumScene extends Phaser.Scene {
     this.onInteractCallback(this.proximityId);
   }
 
+  preload() {
+    for (const exhibit of EXHIBITS.filter(item => item.planet === this.opts.planet && item.characterImage)) {
+      this.load.image(`exhibit-${exhibit.id}`, exhibit.characterImage!);
+    }
+  }
+
   create() {
     const mars = this.opts.planet === "Mars";
     const bg = this.add.graphics();
@@ -67,7 +73,12 @@ export class MuseumScene extends Phaser.Scene {
     this.exhibits = planetExhibits.map((exhibit, i) => {
       const pos = positions[i];
       const finished = this.opts.completed.includes(exhibit.id);
-      this.drawExhibit(pos.x, pos.y, exhibit.name, exhibit.color, exhibit.symbol, finished, mars);
+      this.drawExhibit(pos.x, pos.y, exhibit.galleryName ?? exhibit.name, exhibit.color, exhibit.symbol, finished, mars, Boolean(exhibit.characterImage), Boolean(exhibit.imageWarning));
+      if (exhibit.characterImage) {
+        const image = this.add.image(pos.x, pos.y - 5, `exhibit-${exhibit.id}`).setDepth(1);
+        const source = image.texture.getSourceImage() as { width: number; height: number };
+        image.setScale(Math.min(112 / source.width, 74 / source.height));
+      }
       return { id: exhibit.id, x: pos.x, y: pos.y + 74, radius: 94, width: 128, height: 84 };
     });
 
@@ -94,7 +105,7 @@ export class MuseumScene extends Phaser.Scene {
     this.events.on("shutdown", () => { this.onNearbyCallback(null); });
   }
 
-  private drawExhibit(x: number, y: number, name: string, tint: number, symbol: string, finished: boolean, mars: boolean) {
+  private drawExhibit(x: number, y: number, name: string, tint: number, symbol: string, finished: boolean, mars: boolean, hasCharacterImage: boolean, temporaryArt: boolean) {
     const g = this.add.graphics();
     g.fillStyle(0x071329, .68); g.fillRoundedRect(x - 100, y - 55, 200, 138, 17);
     g.lineStyle(1, tint, .28); g.strokeRoundedRect(x - 100, y - 55, 200, 138, 17);
@@ -102,7 +113,9 @@ export class MuseumScene extends Phaser.Scene {
     g.fillStyle(0x91e6f0, .22); g.fillRoundedRect(x - 56, y + 27, 112, 15, 7);
     g.fillStyle(0x5c7290, .38); g.fillRoundedRect(x - 70, y + 40, 140, 10, 5);
     g.fillStyle(tint, finished ? .95 : .72);
-    if (symbol === "R" || symbol === "O") {
+    if (hasCharacterImage) {
+      // Moon exhibit artwork is loaded from the supplied illustrations below.
+    } else if (symbol === "R" || symbol === "O") {
       g.fillRoundedRect(x - 26, y - 23, 52, 23, 8);
       g.fillStyle(0x14243b, .95); g.fillCircle(x - 19, y + 2, 7); g.fillCircle(x + 19, y + 2, 7);
       g.fillStyle(tint, .8); g.fillCircle(x - 19, y + 2, 3); g.fillCircle(x + 19, y + 2, 3);
@@ -121,7 +134,8 @@ export class MuseumScene extends Phaser.Scene {
     }
     if (finished) { g.lineStyle(2, tint, .75); g.strokeCircle(x + 75, y - 38, 11); g.lineStyle(2, 0xffffff, .9); g.lineBetween(x + 70, y - 38, x + 74, y - 34); g.lineBetween(x + 74, y - 34, x + 81, y - 43); }
     this.add.text(x, y + 57, name, { fontFamily: "Manrope", fontSize: "11px", color: "#e4edf9", align: "center", wordWrap: { width: 180 } }).setOrigin(.5);
-    this.add.text(x, y + 73, finished ? "MEMORY RESTORED" : (mars ? "DEMO EXHIBIT" : "DEMO EXHIBIT"), { fontFamily: "DM Mono", fontSize: "8px", color: finished ? "#b5f5dc" : mars ? "#e5a587" : "#91dae7", letterSpacing: 1 }).setOrigin(.5);
+    this.add.text(x, y + 73, hasCharacterImage ? "AI ART · NOT A NASA PHOTO" : finished ? "MEMORY RESTORED" : "DEMO EXHIBIT", { fontFamily: "DM Mono", fontSize: hasCharacterImage ? "7px" : "8px", color: finished ? "#b5f5dc" : mars ? "#e5a587" : "#91dae7", letterSpacing: 1 }).setOrigin(.5);
+    if (temporaryArt) this.add.text(x, y + 82, "TEMP ART · REPLACE BEFORE RELEASE", { fontFamily: "DM Mono", fontSize: "6px", color: "#ffb4bc", letterSpacing: .5 }).setOrigin(.5);
   }
 
   private createAstronaut(x: number, y: number, astronautId: string) {

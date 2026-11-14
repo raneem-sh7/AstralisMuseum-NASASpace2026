@@ -218,9 +218,3 @@ export const EXHIBITS: Exhibit[] = [
     ], sources: [{ label: "NASA — Opportunity Rover", url: "https://science.nasa.gov/mission/mer-opportunity/" }, { label: "NASA — Opportunity Mission Ends", url: "https://www.nasa.gov/news-release/nasas-opportunity-rover-mission-on-mars-comes-to-end/" }]
   }
 ];
-
-export const ASTRONAUTS = [
-  { id: "blue", name: "Blue Explorer", color: "#77dce8", description: "Calm under pressure. Sees every detail." },
-  { id: "orange", name: "Orange Explorer", color: "#ffb477", description: "Curious by nature. Always moving forward." },
-  { id: "purple", name: "Purple Explorer", color: "#b8a3ff", description: "A thoughtful wanderer with a big imagination." }
-] as const;

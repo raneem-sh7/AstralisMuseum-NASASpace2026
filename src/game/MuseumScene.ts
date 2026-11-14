@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { EXHIBITS } from "../data/exhibits";
+import { AstronautActor, preloadAstronaut } from "./AstronautActor";
 
 export type SceneOptions = {
   planet: "Moon" | "Mars";
@@ -20,6 +21,7 @@ export type MuseumSceneController = {
 export class MuseumScene extends Phaser.Scene {
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private player!: Phaser.GameObjects.Container;
+  private avatar!: AstronautActor;
   private proximityId: string | null = null;
   private lastReported: string | null = null;
   private joystick = { x: 0, y: 0 };
@@ -39,13 +41,14 @@ export class MuseumScene extends Phaser.Scene {
   }
 
   setJoystick(x: number, y: number) { this.joystick = { x, y }; }
-  setMovementEnabled(enabled: boolean) { this.movementEnabled = enabled; }
+  setMovementEnabled(enabled: boolean) { this.movementEnabled = enabled; if (!enabled) this.avatar?.update(0, 0); }
   interact() {
     if (!this.movementEnabled || !this.proximityId) return;
     this.onInteractCallback(this.proximityId);
   }
 
   preload() {
+    preloadAstronaut(this, this.opts.astronaut);
     for (const exhibit of EXHIBITS.filter(item => item.planet === this.opts.planet && item.characterImage)) {
       this.load.image(`exhibit-${exhibit.id}`, exhibit.characterImage!);
     }
@@ -148,18 +151,8 @@ export class MuseumScene extends Phaser.Scene {
   }
 
   private createAstronaut(x: number, y: number, astronautId: string) {
-    const palette: Record<string, number> = { blue: 0x78dce9, orange: 0xffb477, purple: 0xb8a3ff };
-    const color = palette[astronautId] ?? palette.blue;
-    this.player = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, 22, 45, 13, 0x000000, .28);
-    const body = this.add.graphics();
-    body.fillStyle(color, 1); body.fillRoundedRect(-14, -4, 28, 29, 10);
-    body.fillStyle(0xe8f5ff, 1); body.fillCircle(0, -15, 19);
-    body.fillStyle(0x385479, 1); body.fillRoundedRect(-12, -24, 24, 17, 8);
-    body.fillStyle(0xbceef2, .8); body.fillCircle(-5, -20, 2);
-    body.fillStyle(0xe9f4ff, 1); body.fillRoundedRect(-21, 1, 9, 15, 4); body.fillRoundedRect(12, 1, 9, 15, 4);
-    body.fillStyle(0x18304d, 1); body.fillRoundedRect(-10, 21, 8, 10, 3); body.fillRoundedRect(2, 21, 8, 10, 3);
-    this.player.add([shadow, body]);
+    this.avatar = new AstronautActor(this, x, y, astronautId);
+    this.player = this.avatar.container;
   }
 
   update(_time: number, delta: number) {
@@ -177,7 +170,8 @@ export class MuseumScene extends Phaser.Scene {
     const nextX = Phaser.Math.Clamp(this.player.x + dx * speed, this.bounds.left + 24, this.bounds.right - 24);
     const nextY = Phaser.Math.Clamp(this.player.y + dy * speed, this.bounds.top + 32, this.bounds.bottom - 25);
     const blocked = this.exhibits.some(e => Math.abs(nextX - e.x) < e.width / 2 + 14 && Math.abs(nextY - e.y) < e.height / 2 + 10);
-    if (!blocked) { this.player.setPosition(nextX, nextY); }
+    if (!blocked) { this.player.setPosition(nextX, nextY).setDepth(nextY + 20); }
+    this.avatar.update(blocked ? 0 : dx, blocked ? 0 : dy);
     const near = this.exhibits.find(e => Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) < e.radius)?.id ?? null;
     this.proximityId = near;
     if (near !== this.lastReported) { this.lastReported = near; this.onNearbyCallback(near); }

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
-import { ASTRONAUTS, EXHIBITS, EXHIBIT_ID_ALIASES } from "./data/exhibits";
+import { EXHIBITS, EXHIBIT_ID_ALIASES } from "./data/exhibits";
+import { ASTRONAUTS, AVATAR_CREDIT, getAstronaut, normalizeAstronautId } from "./data/astronauts";
+import { AstronautSelection } from "./components/AstronautSelection";
 import type { Exhibit } from "./data/exhibits";
 import MuseumCanvas from "./game/MuseumCanvas";
 import type { MuseumSceneController } from "./game/MuseumScene";
@@ -17,7 +19,7 @@ type Screen = "welcome" | "select" | "game" | "failed" | "legacy";
 type Progress = { astronaut: string; planet: Planet; oxygen: number; completed: string[]; stamps: string[] };
 type Modal = "how" | "credits" | "inspect" | "hook" | "story" | "memory" | "stamp" | "passport" | "travel" | null;
 const SAVE_KEY = "astralis-progress-v1";
-const emptyProgress = (): Progress => ({ astronaut: "blue", planet: "Moon", oxygen: 60, completed: [], stamps: [] });
+const emptyProgress = (): Progress => ({ astronaut: "christina-koch", planet: "Moon", oxygen: 60, completed: [], stamps: [] });
 
 function loadProgress(): Progress | null {
   try {
@@ -32,7 +34,7 @@ function loadProgress(): Progress | null {
         .filter((id) => EXHIBITS.some((exhibit) => exhibit.id === id)))]
       : [];
     return {
-      astronaut: value.astronaut,
+      astronaut: normalizeAstronautId(value.astronaut),
       planet: value.planet as Planet,
       oxygen: Math.max(0, Math.min(100, value.oxygen)),
       completed: normalizeIds(value.completed),
@@ -56,19 +58,12 @@ function Icon({ name, size = 18 }: { name: "arrow" | "passport" | "close" | "sta
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function Suit({ color, size = 96, name }: { color: string; size?: number; name?: string }) {
-  return <svg width={size} height={size} viewBox="0 0 120 120" role="img" aria-label={name ?? "Astronaut character"}>
-    <ellipse cx="60" cy="107" rx="31" ry="7" fill="#050d1c" opacity=".45" />
-    <path d="M34 68c0-9 8-15 26-15s26 6 26 15v26H34z" fill={color} stroke="#eaf7ff" strokeWidth="3" />
-    <path d="M27 72h10v20H27zm56 0h10v20H83z" fill="#e6f4ff" stroke="#c4d9ed" strokeWidth="2" />
-    <path d="M45 93h11v14H45zm19 0h11v14H64z" fill="#d9e9f8" />
-    <circle cx="60" cy="37" r="29" fill="#ecf5ff" stroke="#d0e3f2" strokeWidth="3" />
-    <path d="M39 32c3-10 12-16 21-16s18 6 21 16v16H39z" fill="#355174" stroke="#c0e8f1" strokeWidth="2" />
-    <path d="M46 29c4-6 10-9 15-9" stroke="#d4f6fa" strokeWidth="3" strokeLinecap="round" opacity=".8" />
-    <circle cx="53" cy="35" r="2" fill="#effbff" opacity=".9" />
-    <rect x="72" y="69" width="11" height="15" rx="3" fill="#d8f4f6" opacity=".9" />
-    <path d="M75 73h5" stroke={color} strokeWidth="2" />
-  </svg>;
+function AstronautCredits() {
+  return <section className="mt-5 border-t border-white/10 pt-4">
+    <h3 className="mono text-[10px] tracking-widest text-cyan-100">ASTRONAUT PHOTOGRAPHS &amp; GAME ART</h3>
+    {ASTRONAUTS.map(profile => <p key={profile.id} className="mt-2 text-xs leading-relaxed text-slate-400"><b className="text-slate-200">{profile.name}:</b> {profile.photoCredit} <a href={profile.portraitSource} target="_blank" rel="noreferrer" className="text-cyan-200 underline">NASA portrait source</a> · <a href={profile.biographySource} target="_blank" rel="noreferrer" className="text-cyan-200 underline">NASA biography</a></p>)}
+    <p className="mt-3 text-xs leading-relaxed text-slate-400">{AVATAR_CREDIT}</p>
+  </section>;
 }
 
 function HardwareArt({ exhibit, size = 112 }: { exhibit: Exhibit; size?: number }) {
@@ -205,11 +200,12 @@ function GameModal({ modal, exhibit, progress, storyIndex, memoryIndex, onClose,
     />;
   }
   if (modal === "how" || modal === "credits") return <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-    <div className="exhibit-card screen-in w-full max-w-xl rounded-3xl p-6 sm:p-8" role="dialog" aria-modal="true">
+    <div className="exhibit-card screen-in max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-3xl p-6 sm:p-8" role="dialog" aria-modal="true">
       <div className="flex justify-between"><span className="mono text-[10px] tracking-[.2em] text-cyan-200">{modal === "how" ? "FIELD GUIDE" : "CREDITS / SOURCES"}</span><button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-white"><Icon name="close" /></button></div>
       {modal === "how" ? <><h2 className="display mt-3 text-3xl font-bold">Explore at your own pace.</h2><div className="mt-5 grid gap-3 text-sm leading-relaxed text-slate-300">
         <p><b className="text-cyan-100">Move:</b> WASD or arrow keys. On touchscreens, use the directional pad.</p><p><b className="text-cyan-100">Inspect:</b> Walk near a display and press E, or tap Inspect.</p><p><b className="text-cyan-100">Restore:</b> Answer one curiosity question, listen to the story, then answer all three memory questions. Correct answers add 20 oxygen; wrong answers use 20. There is no timer.</p><p><b className="text-cyan-100">Travel:</b> Collect all three Moon stamps to open the Mars gallery. Check your passport at any time.</p>
        </div></> : <><h2 className="display mt-3 text-3xl font-bold">A note from the archive.</h2><p className="mt-4 text-sm leading-relaxed text-slate-300">An independent educational project created by Team Astralis for NASA Space Apps Challenge 2026. Not an official NASA website.</p><p className="mt-4 text-xs leading-relaxed text-slate-400">Moon mission facts link to NASA references in each exhibit; character dialogue and personalities are creative storytelling, not quotations. Mars exhibits remain DEMO CONTENT awaiting team research. Character illustrations are artistic interpretations, not NASA photographs.</p><div className="mt-5 max-h-48 space-y-2 overflow-y-auto pr-2 scrollbar-thin">{EXHIBITS.flatMap(e => e.sources).map((s, index) => <a key={`${s.url}-${index}`} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 hover:text-white">{s.label} ↗</a>)}</div><div className="mt-5 border-t border-white/10 pt-4"><MoonCredits /><p className="mt-4 text-xs leading-relaxed text-slate-400"><b className="text-slate-200">Welcome background:</b> Tarantula Nebula (NIRCam Image). NASA, ESA, CSA, STScI, Webb ERO Production Team. The supplied local image is 800 × 420; NASA's official asset page lists a 2000 × 1157 master. Its color is assigned to infrared data, not natural-color photography.</p><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/asset/webb/tarantula-nebula-nircam-image/" target="_blank" rel="noreferrer">NASA Tarantula Nebula source page ↗</a><a className="mt-2 block text-xs text-cyan-200 underline underline-offset-4" href="https://science.nasa.gov/image-detail/stsci-01ga76rm0c11w977jrhgj5j26x-2/" target="_blank" rel="noreferrer">NASA image detail ↗</a></div></>}
+      {modal === "credits" && <AstronautCredits />}
       <button className="btn-secondary mt-7 rounded-xl px-5 py-3 text-sm" onClick={onClose}>Back to the museum</button>
     </div>
   </div>;
@@ -376,13 +372,7 @@ export default function App() {
       audioControls={<AudioControls />}
     />}
 
-    {screen === "select" && <section className="relative z-10 flex min-h-[100dvh] items-center justify-center px-4 py-10">
-      <div className="w-full max-w-4xl screen-in"><div className="flex items-center justify-between"><button onClick={() => setScreen("welcome")} className="text-xs text-slate-400 hover:text-white">← Main menu</button><span className="mono text-[9px] tracking-[.2em] text-slate-500">01 / CHOOSE YOUR EXPLORER</span></div>
-        <div className="mt-8 text-center"><span className="mono text-[10px] tracking-[.22em] text-cyan-200/75">YOUR FIELD PARTNER</span><h1 className="display mt-2 text-4xl font-bold sm:text-5xl">Who will walk the halls?</h1><p className="mt-3 text-sm text-slate-400">Every explorer has the same abilities. Choose the color that feels like you.</p></div>
-        <div className="mt-9 grid gap-4 sm:grid-cols-3">{ASTRONAUTS.map(a => <button key={a.id} onClick={() => setProgress(p => ({ ...p, astronaut: a.id }))} className={`astronaut-choice ${progress.astronaut === a.id ? "selected" : ""}`} aria-pressed={progress.astronaut === a.id}><div className="absolute right-3 top-3">{progress.astronaut === a.id && <span className="grid h-6 w-6 place-items-center rounded-full bg-cyan-200 text-slate-900"><Icon name="check" size={14} /></span>}</div><div className="mx-auto w-fit"><Suit color={a.color} size={116} name={a.name} /></div><h2 className="display mt-2 text-xl font-bold">{a.name}</h2><p className="mt-2 min-h-10 text-xs leading-relaxed text-slate-400">{a.description}</p><div className="mx-auto mt-3 h-1 w-10 rounded-full" style={{ background: a.color }} /></button>)}</div>
-        <div className="mt-7 flex flex-col items-center gap-3"><button className="btn-primary flex w-full max-w-sm items-center justify-center gap-3 rounded-xl px-6 py-4 font-bold" onClick={confirmAstronaut}>Confirm selection <Icon name="arrow" /></button><p className="mono text-[9px] tracking-wider text-slate-600">YOUR ADVENTURE BEGINS AT THE MOON MUSEUM</p></div>
-      </div>
-    </section>}
+    {screen === "select" && <AstronautSelection selectedId={progress.astronaut} onSelect={id => setProgress(p => ({ ...p, astronaut: id }))} onConfirm={confirmAstronaut} onBack={() => setScreen("welcome")} />}
 
     {screen === "failed" && <section className="relative z-10 flex min-h-[100dvh] items-center justify-center px-5 py-10"><div className="screen-in max-w-md text-center"><div className="failure-mark mx-auto grid h-24 w-24 place-items-center rounded-full"><span className="display text-4xl">0%</span></div><span className="mono mt-7 block text-[10px] tracking-[.24em] text-rose-200/80">EXPEDITION COMPLETE</span><h1 className="display mt-2 text-4xl font-bold">Mission Failed</h1><p className="mt-4 text-sm leading-relaxed text-slate-400">Oxygen depleted. The expedition has ended. Your passport and saved progress have been cleared. A fresh start is waiting back at astronaut selection.</p><button onClick={() => { setProgress(emptyProgress()); setScreen("select"); }} className="btn-primary mt-7 rounded-xl px-6 py-4 font-bold">Return to astronaut selection <Icon name="arrow" size={16} /></button></div></section>}
 
@@ -424,6 +414,7 @@ export default function App() {
 
     {screen === "legacy" && <section className="relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-4 py-8">
       <div className="legacy-scene screen-in w-full max-w-5xl"><div className="text-center"><span className="mono text-[10px] tracking-[.25em] text-cyan-100">ASTRALIS ARCHIVE / COMPLETE</span><h1 className="display mt-3 text-4xl font-bold sm:text-6xl">All Memories Restored!</h1><p className="mt-3 text-sm text-slate-400">Six journeys, held in one constellation.</p></div>
+        <div className="mx-auto mt-5 flex w-fit items-center gap-4 rounded-2xl border border-cyan-100/15 bg-cyan-100/5 px-5 py-2" data-astronaut={progress.astronaut}><img src={getAstronaut(progress.astronaut).idle} alt={`Your playable ${getAstronaut(progress.astronaut).name} character`} className="h-28 w-24 object-contain" /><div><p className="mono text-[9px] tracking-widest text-cyan-200">YOUR EXPLORER</p><h2 className="display mt-1 text-xl font-bold">{getAstronaut(progress.astronaut).name}</h2><p className="mt-1 text-xs text-slate-400">{getAstronaut(progress.astronaut).role}</p><p className="mt-2 text-[9px] text-slate-500">AI-generated game character · not a NASA photo</p></div></div>
         <div className="legacy-wall mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">{EXHIBITS.map((e, i) => <article key={e.id} className="legacy-item" style={{ animationDelay: `${i * 180}ms` }}><div className="legacy-art"><HardwareArt exhibit={e} size={96} /></div><h2 className="display text-sm font-bold sm:text-base">{e.name}</h2><p className="legacy-contribution">{e.contribution}</p><span className="mono text-[8px] tracking-wider text-slate-600">{e.planet.toUpperCase()} / {e.planet === "Moon" ? "NASA SOURCES · AI ART" : "DEMO CONTENT"}</span></article>)}</div>
         <p className="display mx-auto mt-8 max-w-xl text-center text-xl font-medium text-cyan-100 sm:text-2xl">“Their missions may have ended, but their discoveries live on.”</p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><button onClick={() => { setModal(null); setScreen("welcome"); }} className="btn-secondary rounded-xl px-6 py-3.5 font-semibold">Return to Main Menu</button><button onClick={newAdventure} className="btn-primary rounded-xl px-6 py-3.5 font-bold">Start a New Adventure <Icon name="arrow" size={16} /></button></div>

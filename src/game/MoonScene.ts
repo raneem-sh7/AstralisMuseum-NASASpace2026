@@ -3,6 +3,7 @@ import { audioManager } from "../audio/AudioManager";
 import { EXHIBITS } from "../data/exhibits";
 import { MOON_CHARACTER_ART, MOON_EQUIPMENT_PHOTOS, MOON_SURFACE_PHOTO } from "../data/moonAssets";
 import type { SceneOptions } from "./MuseumScene";
+import { AstronautActor, preloadAstronaut } from "./AstronautActor";
 
 type MoonExhibit = {
   id: string;
@@ -24,6 +25,7 @@ type MoonExhibit = {
 export class MoonScene extends Phaser.Scene {
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private player!: Phaser.GameObjects.Container;
+  private avatar!: AstronautActor;
   private opts!: SceneOptions;
   private joystick = { x: 0, y: 0 };
   private movementEnabled = true;
@@ -43,7 +45,7 @@ export class MoonScene extends Phaser.Scene {
 
   configure(opts: SceneOptions) { this.opts = opts; }
   setJoystick(x: number, y: number) { this.joystick = { x, y }; }
-  setMovementEnabled(enabled: boolean) { this.movementEnabled = enabled; }
+  setMovementEnabled(enabled: boolean) { this.movementEnabled = enabled; if (!enabled) this.avatar?.update(0, 0); }
 
   interact() {
     if (!this.movementEnabled || !this.proximityId) return;
@@ -65,6 +67,7 @@ export class MoonScene extends Phaser.Scene {
   }
 
   preload() {
+    preloadAstronaut(this, this.opts.astronaut);
     this.load.image("moon-surface", MOON_SURFACE_PHOTO.localImage);
     for (const exhibit of EXHIBITS.filter(item => item.planet === "Moon")) {
       const art = MOON_CHARACTER_ART[exhibit.id];
@@ -262,24 +265,8 @@ export class MoonScene extends Phaser.Scene {
   }
 
   private createAstronaut(x: number, y: number, astronautId: string) {
-    const palette: Record<string, number> = { blue: 0x9ddce0, orange: 0xe5b98b, purple: 0xc1b4db };
-    const color = palette[astronautId] ?? palette.blue;
-    this.player = this.add.container(x, y).setDepth(y + 20);
-    const shadow = this.add.ellipse(0, 25, 44, 13, 0x111516, .48);
-    const suit = this.add.graphics();
-    suit.fillStyle(0x263234, .5); suit.fillRoundedRect(-20, -24, 40, 58, 15);
-    suit.fillStyle(color, 1); suit.fillRoundedRect(-16, -7, 32, 33, 11);
-    suit.lineStyle(2, 0xf4f0e6, .95); suit.strokeRoundedRect(-16, -7, 32, 33, 11);
-    suit.fillStyle(0xd8e3dc, 1); suit.fillCircle(0, -20, 22);
-    suit.fillStyle(0x24383b, 1); suit.fillRoundedRect(-15, -30, 30, 20, 9);
-    suit.lineStyle(2, 0xb1e7e3, .82); suit.strokeRoundedRect(-15, -30, 30, 20, 9);
-    suit.fillStyle(0xf4f4eb, .9); suit.fillRoundedRect(-24, 2, 9, 19, 4); suit.fillRoundedRect(15, 2, 9, 19, 4);
-    suit.fillStyle(0x1a2425, 1); suit.fillRoundedRect(-12, 25, 9, 10, 3); suit.fillRoundedRect(3, 25, 9, 10, 3);
-    suit.fillStyle(0x9ee6df, .95); suit.fillRoundedRect(8, 0, 7, 12, 2);
-    suit.lineStyle(1, 0x324446, .8); suit.lineBetween(9, 4, 14, 4); suit.lineBetween(9, 7, 14, 7);
-    this.player.add([shadow, suit]);
-    if (this.compactWorld) this.player.setScale(1.18);
-    this.add.ellipse(x, y + 34, 47, 20, color, .08).setDepth(y - 1);
+    this.avatar = new AstronautActor(this, x, y, astronautId, this.compactWorld ? 108 : 90);
+    this.player = this.avatar.container;
   }
 
   private loadWarning(message: string) {
@@ -311,12 +298,14 @@ export class MoonScene extends Phaser.Scene {
     }
     const magnitude = Math.hypot(dx, dy);
     if (magnitude > 1) { dx /= magnitude; dy /= magnitude; }
+    let moved = false;
     if (Math.abs(dx) > .08 || Math.abs(dy) > .08) {
       const speed = 195 * Math.min(delta / 1000, .04);
       const nextX = Phaser.Math.Clamp(this.player.x + dx * speed, this.bounds.left + 20, this.bounds.right - 20);
       const nextY = Phaser.Math.Clamp(this.player.y + dy * speed, this.bounds.top + 24, this.bounds.bottom - 24);
       const blocked = this.exhibits.some(item => Math.abs(nextX - item.x) < item.width / 2 && Math.abs(nextY - item.y) < item.height / 2);
       if (!blocked) {
+        moved = true;
         this.player.setPosition(nextX, nextY).setDepth(nextY + 20);
         if (time - this.lastMovementSound > 520) {
           audioManager.play("movement");
@@ -324,6 +313,7 @@ export class MoonScene extends Phaser.Scene {
         }
       }
     }
+    this.avatar.update(moved ? dx : 0, moved ? dy : 0);
     const near = this.exhibits.find(item =>
       !item.finished && Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y) < item.radius
     )?.id ?? null;

@@ -4,6 +4,7 @@ import Phaser from "phaser";
 import { MuseumScene } from "./MuseumScene";
 import type { MuseumSceneController } from "./MuseumScene";
 import { MoonScene } from "./MoonScene";
+import { getAstronaut } from "../data/astronauts";
 
 type Props = {
   planet: "Moon" | "Mars";
@@ -77,7 +78,7 @@ export default function MuseumCanvas({ planet, astronaut, completed, onNearby, o
     };
   }, [planet, astronaut, completedKey, sceneRef, viewport?.width, viewport?.height]);
 
-  return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game`} role="img" aria-busy={!ready} data-ready={ready}>
+  return <div ref={parentRef} className="game-canvas" aria-label={`${planet} museum exploration game as ${getAstronaut(astronaut).name}`} role="img" aria-busy={!ready} data-ready={ready} data-astronaut={getAstronaut(astronaut).id}>
     <div ref={mountRef} className="phaser-mount" />
     {!ready && planet === "Moon" && <div className="canvas-loading" role="status">Preparing lunar field instruments…</div>}
   </div>;

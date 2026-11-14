@@ -1,1 +1,2 @@
 - [Progress-safe gameplay checks](gameplay-verification.md) — preserve stamps during exhibit replacements and wait for Phaser readiness before key-driven tests.
+- [Approved astronaut artwork](astronaut-art-direction.md) — retain the approved Koch/Glover identities and verify real alpha on generated walking sheets.
